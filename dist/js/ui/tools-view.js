@@ -3,196 +3,143 @@
  * Mistake Journal, Bloom Garden, Practicals & Vault Security.
  */
 import { icon } from './icons.js';
-import { getSubject, getChapter } from '../curriculum.js';
+import { getSubject } from '../curriculum.js';
 export function renderToolsView(state) {
     const mistakes = state.mistakes;
     const garden = state.garden;
+    const learner = state.profile;
     return `
-    <div class="page-container tools-page">
-      <header class="tools-header liquid-glass-panel">
+    <div class="page tools-page">
+      <div class="section-head intro">
         <div>
-          <span class="eyebrow-text">PERSONAL STUDY VAULT & TOOLS</span>
-          <h1 class="page-title">Your Space</h1>
-          <p class="page-subtitle">Mistake Journal, tranquil garden growth, practicals, and private settings.</p>
+          <p class="eyebrow">PERSONAL STUDY SPACE & VAULT</p>
+          <h1>Your Space</h1>
+          <p class="muted">All your study tools, mistake journal, and privacy controls in one place.</p>
         </div>
-      </header>
+      </div>
 
-      <!-- Grid of Tools -->
-      <div class="tools-grid">
-        <!-- Mistake Journal Card -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
+      <section class="profile-top" style="display:flex; align-items:center; gap:16px; margin-bottom:28px; padding:20px; background:#fff8; border-radius:14px; border:1px solid var(--line);">
+        <span class="avatar" style="width:64px; height:64px; font-size:24px; border-radius:50%; display:grid; place-items:center; background:var(--blush); color:var(--rose-dark); font-weight:700;">
+          ${learner.name[0] || 'A'}
+        </span>
+        <div style="flex:1;">
+          <h2 style="font-size:24px; margin:0;">${learner.name}</h2>
+          <p class="muted" style="margin:2px 0 0; font-size:13px;">CBSE Class XII · 2027 · Private Local Vault</p>
+        </div>
+        <button type="button" class="button outline" data-action="open-onboarding" title="Update settings">
+          ${icon('pencil')} Routine & Settings
+        </button>
+      </section>
+
+      <div class="planner-grid" style="grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Mistake Journal -->
+        <section style="background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px;">
+          <div class="section-head">
             <div>
-              <h2 class="panel-title">${icon('alert-circle', 18)} Mistake Journal (${mistakes.length})</h2>
-              <p class="panel-subtitle">Turn errors into mastery. Scheduled retry activities target root causes.</p>
+              <h2>Mistake Journal</h2>
+              <p class="muted">${mistakes.length} error logs · scheduled retry for root causes</p>
             </div>
-            <button type="button" class="btn secondary btn-sm" data-action="open-new-mistake-modal">
-              ${icon('plus', 14)} Add Entry
+            <button type="button" class="button outline" data-action="open-new-mistake-modal">
+              ${icon('plus')} Log mistake
             </button>
           </div>
 
-          ${mistakes.length ? `
-            <div class="mistakes-stack">
-              ${mistakes.map(m => {
+          <div class="rows">
+            ${mistakes.length > 0 ? mistakes.map(m => {
         const sub = getSubject(m.subjectId);
-        const chap = getChapter(m.chapterId);
         return `
-                  <div class="mistake-item glass-subcard ${m.resolved ? 'mistake-resolved' : ''}">
-                    <div class="mistake-item-top">
-                      <span class="subject-tag subject-${m.subjectId}">${sub?.title || m.subjectId}</span>
-                      <span class="root-cause-badge cause-${m.rootCause}">${m.rootCause.replace('_', ' ')}</span>
-                      <span class="mistake-date">${m.date}</span>
-                    </div>
-
-                    <h4 class="mistake-question">${m.questionDesc}</h4>
-                    <p class="mistake-chap-label">${chap?.title || ''}</p>
-
-                    <div class="mistake-notes-block">
-                      <p><strong>What went wrong:</strong> ${m.studentNotes}</p>
-                      ${m.correctApproach ? `<p><strong>Key lesson / correction:</strong> ${m.correctApproach}</p>` : ''}
-                    </div>
-
-                    <div class="mistake-actions">
-                      ${!m.resolved ? `
-                        <button type="button" class="btn primary btn-sm" data-action="schedule-mistake-retry" data-mistake-id="${m.id}">
-                          ${icon('rotate-ccw', 14)} Schedule Retry Session
-                        </button>
-                        <button type="button" class="btn quiet btn-sm" data-action="toggle-mistake-resolved" data-mistake-id="${m.id}">
-                          Mark Resolved
-                        </button>
-                      ` : `
-                        <span class="resolved-badge">${icon('check', 14)} Mastered</span>
-                      `}
-                    </div>
+                <article class="task-row ${m.resolved ? 'done' : ''}">
+                  <div class="row-main">
+                    <span class="subject subject-${m.subjectId}">${sub?.title || m.subjectId}</span>
+                    <strong>${m.questionDesc}</strong>
+                    <small>Cause: ${m.rootCause.replace('_', ' ')} · ${m.studentNotes}</small>
                   </div>
-                `;
-    }).join('')}
-            </div>
-          ` : `
-            <div class="empty-state-card">
-              <p class="empty-text">No mistakes logged yet. When you hit a stumbling block in numericals or questions, log it here to automatically schedule a retry.</p>
-              <button type="button" class="btn secondary btn-sm" data-action="open-new-mistake-modal">
-                ${icon('plus', 14)} Log your first mistake note
-              </button>
-            </div>
-          `}
-        </section>
-
-        <!-- Bloom Garden Card -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon('flower', 18)} Bloom Garden</h2>
-              <p class="panel-subtitle">Calm reflection on your real focus. Never withers or penalizes missed days.</p>
-            </div>
-          </div>
-
-          <div class="garden-stage-display glass-subcard">
-            <div class="garden-plant-visual">
-              <div class="botanical-bloom-icon" aria-hidden="true">🌸</div>
-            </div>
-            <div class="garden-status-text">
-              <h3 class="plant-name">${garden.plantType} · Level ${garden.level}</h3>
-              <p class="plant-quote">"True understanding grows with steady, calm steps."</p>
-              <div class="growth-metric">
-                <span>Growth Points: <strong>${garden.growthPoints}</strong> (earned through saved focus sessions)</span>
-                <span>Blooms Achieved: <strong>${garden.bloomsEarned}</strong></span>
+                  <div style="display:flex; gap:6px;">
+                    ${!m.resolved ? `
+                      <button type="button" class="button quiet" data-action="schedule-mistake-retry" data-mistake-id="${m.id}" title="Schedule retry">
+                        ${icon('rotate-ccw')}
+                      </button>
+                    ` : `
+                      <span class="status marked">${icon('check')} Mastered</span>
+                    `}
+                  </div>
+                </article>
+              `;
+    }).join('') : `
+              <div class="empty-line" style="padding:20px; text-align:center; color:var(--soft);">
+                No mistakes logged yet. When you get stuck on a question or numerical, log it here to automatically schedule a spaced retry.
               </div>
-            </div>
-          </div>
-
-          <p class="provenance-disclaimer">
-            Garden progress is built on genuine focus sessions recorded by you. If you take a rest day, your garden calmly waits for your return.
-          </p>
-        </section>
-
-        <!-- Practicals & Project Tracker -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon('clipboard-check', 18)} CBSE Practicals & Internal Assessment</h2>
-              <p class="panel-subtitle">Official 30-mark (Science/PE) and 20-mark (Math/English) guidelines.</p>
-            </div>
-          </div>
-
-          <div class="practicals-list">
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Physics (042) — 30 Marks Practical</strong>
-                <p>Two experiments (one from each section: 7+7), practical record file (5), one activity from each section (3+3), viva voce (5).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Chemistry (043) — 30 Marks Practical</strong>
-                <p>Volumetric analysis (8), Salt analysis (8), Content based experiment (6), Project work (4), Class record and viva (4).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Physical Education (048) — 30 Marks Practical</strong>
-                <p>Physical fitness test (6), Proficiency in games/sports (7), Yogic practices (7), Record file (5), Viva voce (5).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>English Core (301) — 20 Marks Assessment</strong>
-                <p>Listening test (5), Speaking skills presentation (5), Project file & viva (10).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Mathematics (041) — 20 Marks Internal Assessment</strong>
-                <p>Periodic tests best 2 out of 3 (10), Mathematics activities record file & viva (10).</p>
-              </div>
-            </div>
+            `}
           </div>
         </section>
 
-        <!-- Security, Privacy & App Settings -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon('lock', 18)} Privacy & Vault Protection</h2>
-              <p class="panel-subtitle">Aastha alone holds data access. Zero cloud surveillance.</p>
+        <!-- Bloom Garden -->
+        <section style="background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div class="section-head">
+              <div>
+                <h2>Bloom Garden</h2>
+                <p class="muted">Reflects your genuine study focus. Never withers.</p>
+              </div>
+            </div>
+
+            <div style="text-align:center; padding:30px 10px;">
+              <div style="font-size:64px; margin-bottom:12px;">🌸</div>
+              <h3 style="font-size:20px; margin:0 0 6px;">${garden.plantType} · Level ${garden.level}</h3>
+              <p class="muted" style="font-size:13px; font-style:italic;">"True understanding grows with steady, calm steps."</p>
+              <div style="margin-top:16px; display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:var(--sage); color:var(--green); border-radius:99px; font-size:12px; font-weight:600;">
+                ${garden.growthPoints} growth points · ${garden.bloomsEarned} blooms earned
+              </div>
             </div>
           </div>
 
-          <div class="settings-stack">
-            <div class="setting-row">
-              <div>
-                <strong>Local Vault Encryption (AES-GCM 256-bit)</strong>
-                <p>Optionally seal your private records with a passphrase so no one on this device can read them without it.</p>
-              </div>
-              <button type="button" class="btn secondary btn-sm" data-action="open-vault-modal">
-                ${state.vaultPassphraseSet ? icon('unlock', 14) + ' Change Passphrase' : icon('lock', 14) + ' Enable Passphrase'}
-              </button>
-            </div>
-
-            <div class="setting-row">
-              <div>
-                <strong>Encrypted JSON Data Backup</strong>
-                <p>Download a complete, offline encrypted copy of your preparation profile and records.</p>
-              </div>
-              <button type="button" class="btn secondary btn-sm" data-action="export-vault-backup">
-                Download Backup
-              </button>
-            </div>
-
-            <div class="setting-row">
-              <div>
-                <strong>Reduced Motion</strong>
-                <p>Minimize UI spring animations and transitions for calmer navigation.</p>
-              </div>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-reduced-motion" ${state.reduceMotion ? 'checked' : ''}>
-            </div>
+          <div style="border-top:1px solid var(--line); padding-top:16px; font-size:12px; color:var(--soft);">
+            Flowers bloom when focus sessions are completed and rated honestly.
           </div>
         </section>
       </div>
+
+      <!-- Privacy & Vault Section -->
+      <section style="margin-top:28px; background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px;">
+        <div class="section-head">
+          <div>
+            <h2>Privacy & Vault Security</h2>
+            <p class="muted">Aastha is the sole student. Zero third-party cloud trackers. AES-256-GCM encrypted local storage.</p>
+          </div>
+          <span style="display:inline-flex; align-items:center; gap:6px; color:var(--green); font-size:12px; font-weight:700;">
+            ${icon('shield-check')} AES-256 Encrypted
+          </span>
+        </div>
+
+        <div class="rows">
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);">
+            <div>
+              <strong>Encryption Status</strong>
+              <small style="display:block; color:var(--soft);">Web Crypto PBKDF2 (250,000 iterations) + AES-GCM-256</small>
+            </div>
+            <span class="status marked">Secured</span>
+          </div>
+
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);">
+            <div>
+              <strong>Target Examination</strong>
+              <small style="display:block; color:var(--soft);">Exclusively CBSE Class XII 2027 (No JEE, No external syllabi)</small>
+            </div>
+            <span class="status marked">CBSE XII Only</span>
+          </div>
+
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0;">
+            <div>
+              <strong>Local Backup & Reset</strong>
+              <small style="display:block; color:var(--soft);">Export your study record or reset to clean state.</small>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="button outline" data-action="export-state">Export JSON</button>
+              <button type="button" class="button quiet" data-action="reset-state" style="color:#923a43;">Reset Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   `;
 }

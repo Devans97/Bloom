@@ -1,11 +1,11 @@
 /**
  * BLOOM — Today View
- * Designed for calm clarity on iPad and phone.
+ * Faithful to the Apple Liquid Glass aesthetic and editorial design tokens.
  */
 
 import type { AppState, ActionableTask } from '../types.js';
 import { icon } from './icons.js';
-import { getSubject, getChapter } from '../curriculum.js';
+import { getSubject, getChapter, CBSE_SUBJECTS } from '../curriculum.js';
 import { calculateAvailability, getIsoDate, getRankedStudyIdeas } from '../planner-engine.js';
 import { computeAcademicProgress } from '../academic-engine.js';
 
@@ -52,185 +52,177 @@ export function renderTodayView(state: AppState): string {
   const actualMinutes = Math.floor(actualSeconds / 60);
 
   const plannedMinutes = todayTasks.reduce((acc, t) => acc + t.minutes, 0);
+  const targetMinutes = Math.round(availability.availableMinutes * 0.7);
   const completedTasksCount = todayTasks.filter(t => t.done).length;
+  const remainingTasksCount = todayTasks.length - completedTasksCount;
+  const progressPercent = targetMinutes > 0 ? Math.min(100, Math.round((actualMinutes / targetMinutes) * 100)) : 0;
+
+  // Next board exam calculation (Physics is first on 16 Feb 2027)
+  const nextExamDate = new Date('2027-02-16T10:30:00+05:30');
+  const now = new Date();
+  const diffTime = nextExamDate.getTime() - now.getTime();
+  const daysAway = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+  const heroSubject = heroTask ? getSubject(heroTask.subjectId) : null;
+  const flowerCount = state.garden.bloomsEarned || 1;
+  const availHours = (availability.availableMinutes / 60).toFixed(1);
 
   return `
-    <div class="page-container today-page">
-      <header class="greeting-header">
-        <p class="eyebrow-text">YOUR BOARD PREPARATION, A LITTLE CLEARER</p>
-        <h1 class="greeting-title">Hello, ${learnerName}.</h1>
-        <p class="greeting-subtitle">One thoughtful step at a time.</p>
-      </header>
+    <div class="page today-page">
+      <div class="dashboard-greeting">
+        <div>
+          <p class="eyebrow">YOUR BOARD PREPARATION, A LITTLE CLEARER</p>
+          <h1>Hello, ${learnerName}.</h1>
+          <p>One thoughtful step at a time.</p>
+        </div>
+        <a class="dashboard-garden" href="#tools" data-nav="tools">
+          ${icon('leaf')} <span>${flowerCount} ${flowerCount === 1 ? 'flower' : 'flowers'} in bloom</span>
+        </a>
+      </div>
 
       ${heroTask ? `
-        <section class="hero-study-card liquid-glass-panel">
-          <div class="hero-card-content">
-            <span class="hero-eyebrow">YOUR NEXT STUDY STEP</span>
-            <div class="hero-meta">
-              <span class="subject-tag subject-${heroTask.subjectId}">${getSubject(heroTask.subjectId)?.title || heroTask.subjectId}</span>
-              <span class="activity-type-badge">${heroTask.activityType.replace('_', ' ')}</span>
+        <section class="focus-band" aria-label="Suggested next step">
+          <div class="focus-content">
+            <p class="eyebrow">YOUR NEXT STUDY STEP</p>
+            <div class="subject subject-${heroTask.subjectId}">${heroSubject?.title || heroTask.subjectId}</div>
+            <h2>${heroTask.title}</h2>
+            <p>${heroTask.recommendationReason || heroTask.learningObjective}</p>
+            <div>
+              <button type="button" class="button primary" data-action="open-study-workspace" data-task-id="${heroTask.id}">
+                ${icon('play')} Start studying
+              </button>
             </div>
-            <h2 class="hero-task-title">${heroTask.title}</h2>
-            <p class="hero-task-reason">${heroTask.recommendationReason || 'Highest priority for upcoming board readiness.'}</p>
-            <div class="hero-details">
-              <span>${icon('timer', 15)} ${heroTask.minutes} minutes</span>
-              ${heroTask.time ? `<span>${icon('calendar', 15)} Scheduled at ${heroTask.time}</span>` : ''}
-            </div>
-            <button type="button" class="btn primary hero-action-btn" data-action="open-study-workspace" data-task-id="${heroTask.id}">
-              ${icon('play', 18)} Start studying
-            </button>
           </div>
-          <div class="hero-card-art" aria-hidden="true">
-            <div class="botanical-flourish"></div>
+          <div class="focus-art" aria-hidden="true">
+            <img src="./art/cosmos.webp" alt="Cosmos bloom">
+            <i></i><i></i><i></i>
           </div>
         </section>
       ` : `
-        <section class="hero-study-card liquid-glass-panel empty-hero">
-          <div class="hero-card-content">
-            <span class="hero-eyebrow">TODAY’S SCHEDULE IS CLEAR</span>
-            <h2 class="hero-task-title">No pending tasks for today</h2>
-            <p class="hero-task-reason">Generate a balanced plan based on your current CBSE preparation and available hours.</p>
-            <button type="button" class="btn primary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon('sparkles', 18)} Propose Today’s Plan
-            </button>
+        <section class="focus-band" aria-label="Schedule is clear">
+          <div class="focus-content">
+            <p class="eyebrow">TODAY’S SCHEDULE IS CLEAR</p>
+            <h2>No pending tasks for today</h2>
+            <p>Generate a balanced plan based on your current CBSE preparation and available hours.</p>
+            <div>
+              <button type="button" class="button primary" data-action="propose-plan" data-day="${todayStr}">
+                ${icon('leaf')} Propose Today’s Plan
+              </button>
+            </div>
+          </div>
+          <div class="focus-art" aria-hidden="true">
+            <img src="./art/cosmos.webp" alt="Cosmos bloom">
+            <i></i><i></i><i></i>
           </div>
         </section>
       `}
 
-      <!-- Metrics Row -->
-      <section class="metrics-grid">
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">TODAY’S RECORDED FOCUS</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${actualMinutes}</strong>
-            <span class="metric-unit">min studied</span>
+      <section class="day-pulse" aria-label="Today’s actual study activity">
+        <div class="pulse-main">
+          <div class="pulse-ring" style="--progress: ${progressPercent};" role="img" aria-label="${progressPercent}% of study target">
+            <span>${progressPercent}%<small>of target</small></span>
           </div>
-          <span class="metric-sub">${todaySessions.length} recorded focus sessions</span>
+          <div>
+            <p class="eyebrow">TODAY, AT YOUR PACE</p>
+            <h2>${actualMinutes}m <span>studied</span></h2>
+            <p>${targetMinutes > 0 ? `${targetMinutes}m suggested target` : 'Set your availability'} · ${plannedMinutes}m planned</p>
+          </div>
         </div>
-
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">ACTIVITIES COMPLETED</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${completedTasksCount}</strong>
-            <span class="metric-unit">/ ${todayTasks.length} planned</span>
-          </div>
-          <span class="metric-sub">${todayTasks.length - completedTasksCount} remaining today</span>
+        <div class="pulse-detail">
+          <strong>${completedTasksCount}<span> / ${todayTasks.length}</span></strong>
+          <span>activities complete</span>
+          <small>${remainingTasksCount} remaining</small>
         </div>
-
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">FREE USABLE TIME</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${Math.floor(availability.availableMinutes / 60)}h ${availability.availableMinutes % 60}m</strong>
-          </div>
-          <span class="metric-sub">after school and tuition</span>
+        <div class="pulse-detail">
+          <strong>${todaySessions.length}</strong>
+          <span>focus sessions saved</span>
+          <small>${Math.max(0, targetMinutes - actualMinutes)}m to target</small>
         </div>
       </section>
 
-      <!-- Today's Routine & Schedule Grid -->
-      <div class="today-two-col">
-        <section class="routine-panel liquid-glass-panel">
-          <div class="panel-head">
+      <div class="dashboard-columns">
+        <section class="today-plan">
+          <div class="section-head">
             <div>
-              <h3 class="panel-title">Today's Routine & Overrides</h3>
-              <p class="panel-subtitle">Independent school and tuition commitments</p>
+              <h2>Your day, considered.</h2>
+              <p>${availHours}h available before study breaks and rest</p>
             </div>
+            <a href="#planner" class="button quiet">Open planner ${icon('arrow-right')}</a>
           </div>
 
-          <div class="commitment-toggles">
-            <label class="toggle-control">
-              <span class="toggle-label">${icon('book-open', 16)} School Today</span>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-school" data-day="${todayStr}" ${availability.school ? 'checked' : ''}>
+          <div class="daily-commitments">
+            <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+              <input type="checkbox" data-action="toggle-school" data-day="${todayStr}" ${availability.school ? 'checked' : ''}>
+              <span></span>
+              <span style="font-size:12px; font-weight:600;">School today</span>
             </label>
-
-            <label class="toggle-control">
-              <span class="toggle-label">${icon('clipboard-check', 16)} Tuition Today</span>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-tuition" data-day="${todayStr}" ${availability.tuition ? 'checked' : ''}>
+            <label class="switch" style="display:inline-flex; align-items:center; gap:8px; margin-left:14px;">
+              <input type="checkbox" data-action="toggle-tuition" data-day="${todayStr}" ${availability.tuition ? 'checked' : ''}>
+              <span></span>
+              <span style="font-size:12px; font-weight:600;">Tuition today</span>
             </label>
           </div>
 
-          <p class="panel-hint">
-            ${availability.school && availability.tuition ? 'Both school and tuition are active today.' :
-              availability.school ? 'School only is active today; tuition time is open for study.' :
-              availability.tuition ? 'No school today; morning & afternoon are open for study.' :
-              'Neither school nor tuition today; full day is available for flexible study.'}
-          </p>
+          ${todayTasks.length > 0 ? `
+            <div class="rows">
+              ${todayTasks.slice(0, 4).map(task => `
+                <article class="task-row ${task.done ? 'done' : ''}">
+                  <input type="checkbox" class="task-check" data-action="quick-toggle-task" data-task-id="${task.id}" ${task.done ? 'checked' : ''} aria-label="Mark task done">
+                  <div class="row-main">
+                    <span class="subject subject-${task.subjectId}">${getSubject(task.subjectId)?.title || task.subjectId}</span>
+                    <strong>${task.title}</strong>
+                    <small>${task.recommendationReason || task.learningObjective}</small>
+                  </div>
+                  <span class="row-time">${task.minutes} min</span>
+                  <button type="button" class="tool" data-action="open-study-workspace" data-task-id="${task.id}" title="Open study workspace">
+                    ${icon('play')}
+                  </button>
+                </article>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="companion-empty" style="padding:28px 16px; text-align:center; background:#fff8; border-radius:12px; margin-top:14px;">
+              <p style="color:var(--soft); margin-bottom:12px;">Your time is ready.<br>Let’s give it a useful shape.</p>
+              <button type="button" class="button outline" data-action="propose-plan" data-day="${todayStr}">
+                ${icon('leaf')} Suggest today’s plan
+              </button>
+            </div>
+          `}
         </section>
 
-        <section class="syllabus-summary-panel liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h3 class="panel-title">The Bigger Picture</h3>
-              <p class="panel-subtitle">CBSE Class XII 2027 Coverage</p>
-            </div>
-            <a href="#academics" class="link-action" data-nav="academics">View all ${icon('arrow-right', 14)}</a>
+        <section class="academic-glance">
+          <div class="section-head">
+            <h2>The bigger picture</h2>
+            <a href="#academics" class="button quiet">Academics ${icon('arrow-right')}</a>
           </div>
-
-          <div class="progress-bar-container">
-            <div class="progress-fill" style="width: ${progress.overallPercent}%;"></div>
+          <p class="academic-number" style="font-size:36px; font-family:var(--display); color:var(--ink);">${progress.learnedCount}<span> / ${progress.totalChapters}</span></p>
+          <p style="color:var(--soft); font-size:13px; margin:4px 0 12px;">chapters learned, based on your own status</p>
+          <div class="progress-track" role="progressbar" aria-label="Chapters learned" aria-valuenow="${progress.learnedCount}" aria-valuemax="${progress.totalChapters}">
+            <span class="progress-fill" style="transform: scaleX(${progress.overallPercent / 100});"></span>
           </div>
-
-          <div class="progress-stats-row">
-            <span><strong>${progress.learnedCount}</strong> / ${progress.totalChapters} chapters learned</span>
-            <span><strong>${progress.overallPercent}%</strong> self-reported coverage</span>
+          <div class="academic-attention" style="display:flex; gap:12px; margin-top:14px; font-size:12px; color:var(--soft);">
+            <span><strong style="color:var(--ink);">${progress.learningCount}</strong> learning</span>
+            <span><strong style="color:var(--ink);">${progress.needsRevisionCount}</strong> reviews due</span>
+            <span><strong style="color:var(--ink);">${progress.unknownCount}</strong> unmarked</span>
           </div>
-
-          <p class="provenance-disclaimer">
-            ${progress.unknownCount} chapters have no personal status yet. Unmarked means unknown; BLOOM never invents progress.
-          </p>
+          <small style="display:block; margin-top:12px; color:var(--soft); font-size:11px;">Unmarked means unknown. School coverage never counts as your learning.</small>
         </section>
       </div>
 
-      <!-- Today's Task List -->
-      <section class="today-plan-section liquid-glass-panel">
-        <div class="panel-head">
-          <div>
-            <h3 class="panel-title">Today's Study Schedule (${todayTasks.length} activities)</h3>
-            <p class="panel-subtitle">Click any task to enter your interactive Study Workspace</p>
-          </div>
-          <div class="panel-actions">
-            <button type="button" class="btn secondary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon('sparkles', 15)} Propose additions
-            </button>
-            <a href="#planner" class="btn quiet" data-nav="planner">Open Planner</a>
-          </div>
+      <section class="exam-strip" aria-label="Next board exam">
+        <div class="exam-icon">${icon('leaf')}</div>
+        <div>
+          <p class="eyebrow">NEXT BOARD EXAM</p>
+          <h2>Physics</h2>
+          <p>Monday, 16 February 2027 · ${daysAway} days away</p>
         </div>
-
-        ${todayTasks.length ? `
-          <div class="task-items-list">
-            ${todayTasks.map(task => {
-              const sub = getSubject(task.subjectId);
-              return `
-                <div class="task-card liquid-glass-subcard ${task.done ? 'task-done' : ''}" data-task-id="${task.id}">
-                  <div class="task-card-left">
-                    <button type="button" class="task-check-btn" data-action="quick-toggle-task" data-task-id="${task.id}" aria-label="Mark task done">
-                      ${task.done ? icon('check', 16) : ''}
-                    </button>
-                    <div class="task-info" data-action="open-study-workspace" data-task-id="${task.id}">
-                      <h4 class="task-item-title">${task.title}</h4>
-                      <div class="task-item-meta">
-                        <span class="subject-tag subject-${task.subjectId}">${sub?.title || task.subjectId}</span>
-                        <span>${icon('timer', 13)} ${task.minutes} min</span>
-                        ${task.time ? `<span>${task.time}</span>` : ''}
-                        ${task.activityType ? `<span class="activity-pill">${task.activityType.replace('_', ' ')}</span>` : ''}
-                      </div>
-                    </div>
-                  </div>
-                  <button type="button" class="btn quiet btn-sm" data-action="open-study-workspace" data-task-id="${task.id}">
-                    Study ${icon('arrow-right', 14)}
-                  </button>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        ` : `
-          <div class="empty-state-card">
-            <p class="empty-text">No activities scheduled for today yet.</p>
-            <button type="button" class="btn primary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon('plus', 16)} Generate Proposed Plan for Today
-            </button>
-          </div>
-        `}
+        <a href="#academics/physics" class="button outline">Physics syllabus</a>
       </section>
+
+      <footer class="page-foot">
+        <span>Make room for learning.</span>
+        <a href="#tools" data-nav="tools">See your real progress ${icon('arrow-right')}</a>
+      </footer>
     </div>
   `;
 }

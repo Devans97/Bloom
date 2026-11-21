@@ -1,121 +1,106 @@
 /**
- * BLOOM — Tests & Test Analysis View
- * Verified Board Examination schedule and School Test tracking.
+ * BLOOM — Tests View
+ * Official 2027 Board Exam Date Sheet & School Test Tracking.
  */
 
 import type { AppState, TestRecord } from '../types.js';
 import { icon } from './icons.js';
-import { CBSE_SUBJECTS, getSubject, getChapter } from '../curriculum.js';
+import { CBSE_SUBJECTS, getSubject } from '../curriculum.js';
 import { daysDifference, getIsoDate } from '../planner-engine.js';
 
 export function renderTestsView(state: AppState): string {
   const todayStr = getIsoDate();
-  const schoolTests = state.tests;
+  const sortedSchoolTests = [...state.tests].sort((a, b) => a.day.localeCompare(b.day));
 
   return `
-    <div class="page-container tests-page">
-      <header class="tests-header liquid-glass-panel">
+    <div class="page tests-page">
+      <div class="section-head intro">
         <div>
-          <span class="eyebrow-text">DATES & TEST READINESS</span>
-          <h1 class="page-title">Tests & Examinations</h1>
-          <p class="page-subtitle">Confirmed official board dates and your personal school test schedule.</p>
+          <p class="eyebrow">DATES & COVERAGE</p>
+          <h1>Tests</h1>
         </div>
-        <button type="button" class="btn primary" data-action="open-add-test-modal">
-          ${icon('plus', 16)} Add School Test
+        <button type="button" class="button outline" data-action="open-add-test-modal">
+          ${icon('plus')} Add test
         </button>
-      </header>
+      </div>
 
-      <!-- Official Board Examination Date Sheet -->
-      <section class="board-dates-section liquid-glass-panel">
-        <div class="panel-head">
-          <div>
-            <h2 class="panel-title">${icon('shield-check', 18)} Verified 2027 Main Board Date Sheet</h2>
-            <p class="panel-subtitle">Official CBSE Date Sheet Circular (06 November 2026) · 10:30 AM – 1:30 PM IST</p>
-          </div>
+      <section class="import-banner" style="background:#f2e4e9; border: 1px solid var(--line); border-radius:14px; padding:24px 28px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <p class="eyebrow">YOUR SCHOOL PLANNER</p>
+          <h2 style="font-size:24px; margin:4px 0;">Record your upcoming school tests</h2>
+          <p style="color:var(--soft); font-size:13px;">Add your pre-board or unit test dates and chapters to prioritize study recommendations.</p>
+        </div>
+        <button type="button" class="button primary" data-action="open-add-test-modal">
+          ${icon('plus')} Add school test
+        </button>
+      </section>
+
+      <section style="margin-bottom: 36px;">
+        <div class="section-head">
+          <h2>School tests</h2>
+          <span class="muted">${sortedSchoolTests.length} recorded</span>
         </div>
 
-        <div class="board-dates-table-wrapper">
-          <table class="glass-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Code</th>
-                <th>Official Date</th>
-                <th>Countdown</th>
-                <th>Structure</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${CBSE_SUBJECTS.map(s => {
-                const diff = daysDifference(todayStr, s.examDate);
-                return `
-                  <tr>
-                    <td><strong>${s.title}</strong></td>
-                    <td><code>${s.code}</code></td>
-                    <td>${new Intl.DateTimeFormat('en-GB', { dateStyle: 'full' }).format(new Date(s.examDate + 'T12:00:00Z'))}</td>
-                    <td><span class="badge ${diff <= 30 ? 'badge-urgent' : 'badge-normal'}">${diff > 0 ? `${diff} days` : diff === 0 ? 'Today' : 'Completed'}</span></td>
-                    <td>${s.theoryMarks} Th + ${s.internalMarks} Pr/IA</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+        <div class="rows">
+          ${sortedSchoolTests.length > 0 ? sortedSchoolTests.map(test => {
+            const daysAway = daysDifference(todayStr, test.day);
+            const sub = getSubject(test.subjectId);
+            return `
+              <article class="test-row">
+                <div class="row-main">
+                  <span class="subject subject-${test.subjectId}">${sub?.title || test.subjectId}</span>
+                  <strong>${test.title}</strong>
+                  <small>${test.coverageChapterIds?.length || 0} confirmed chapters · ${daysAway >= 0 ? `${daysAway} days away` : 'Completed'}</small>
+                </div>
+                <span class="row-time">${test.day}</span>
+                <button type="button" class="tool" data-action="delete-test" data-test-id="${test.id}" title="Delete test">
+                  ${icon('trash')}
+                </button>
+              </article>
+            `;
+          }).join('') : `
+            <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+              No upcoming school tests added. Add one above to tailor your study plan.
+            </div>
+          `}
         </div>
       </section>
 
-      <!-- School Tests Section -->
-      <section class="school-tests-section liquid-glass-panel">
-        <div class="panel-head">
+      <section class="board-list">
+        <div class="section-head">
           <div>
-            <h2 class="panel-title">Your Confirmed School Tests (${schoolTests.length})</h2>
-            <p class="panel-subtitle">Entered manually or confirmed from school planner. BLOOM never invents test coverage.</p>
+            <h2>Official Board Examinations</h2>
+            <p>CBSE Class XII · 2027 · 10:30 am–1:30 pm IST</p>
           </div>
+          <a class="button outline" href="https://www.cbse.gov.in" target="_blank" rel="noreferrer">
+            Official dates ${icon('arrow-up-right')}
+          </a>
         </div>
 
-        ${schoolTests.length ? `
-          <div class="school-tests-grid">
-            ${schoolTests.map(test => {
-              const sub = getSubject(test.subjectId);
-              const daysLeft = daysDifference(todayStr, test.day);
-              const coverageChapters = test.coverageChapterIds.map(id => getChapter(id)?.title).filter(Boolean);
+        <div class="rows">
+          ${CBSE_SUBJECTS.map(subject => {
+            const daysAway = daysDifference(todayStr, subject.examDate);
+            const dateStr = new Intl.DateTimeFormat('en-GB', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }).format(new Date(subject.examDate + 'T10:30:00Z'));
 
-              return `
-                <div class="test-card liquid-glass-subcard">
-                  <div class="test-card-top">
-                    <span class="subject-tag subject-${test.subjectId}">${sub?.title || test.subjectId}</span>
-                    <span class="test-date-badge">${test.day} (${daysLeft >= 0 ? `${daysLeft}d away` : 'Past'})</span>
-                  </div>
-
-                  <h3 class="test-name">${test.title}</h3>
-
-                  <div class="test-coverage-info">
-                    <strong>Included Syllabus (${coverageChapters.length} chapters):</strong>
-                    <p class="coverage-list">${coverageChapters.join(', ') || 'General syllabus'}</p>
-                  </div>
-
-                  ${test.scoredMarks !== undefined ? `
-                    <div class="score-display-box glass-subcard">
-                      <span>Recorded Score:</span>
-                      <strong>${test.scoredMarks} / ${test.maxMarks}</strong>
-                      <small>(${Math.round((test.scoredMarks / test.maxMarks) * 100)}%)</small>
-                    </div>
-                  ` : `
-                    <button type="button" class="btn secondary btn-sm" data-action="open-enter-score-modal" data-test-id="${test.id}">
-                      ${icon('edit', 14)} Enter Test Score
-                    </button>
-                  `}
+            return `
+              <article class="test-row">
+                <div class="row-main">
+                  <strong>${subject.title}</strong>
+                  <small>Subject Code: ${subject.code} · ${subject.theoryMarks} Theory + ${subject.internalMarks} Internal</small>
                 </div>
-              `;
-            }).join('')}
-          </div>
-        ` : `
-          <div class="empty-state-card">
-            <p class="empty-text">No upcoming school tests added yet.</p>
-            <button type="button" class="btn secondary" data-action="open-add-test-modal">
-              ${icon('plus', 16)} Add your next school test
-            </button>
-          </div>
-        `}
+                <div style="text-align: right;">
+                  <span class="row-time" style="font-weight: 600; color: var(--ink);">${dateStr}</span>
+                  <small style="display: block; color: var(--green); font-size: 11px;">${daysAway > 0 ? `${daysAway} days away` : 'Today'}</small>
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
       </section>
     </div>
   `;

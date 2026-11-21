@@ -1,6 +1,6 @@
 /**
  * BLOOM — Planner View
- * Features: Timetable/Checklist, independent date overrides, reviewable proposals, and actionable suggestions.
+ * Authentic layout matching Apple Liquid Glass & editorial styling.
  */
 
 import type { AppState, ActionableTask } from '../types.js';
@@ -8,7 +8,7 @@ import { icon } from './icons.js';
 import { getSubject, getChapter } from '../curriculum.js';
 import { calculateAvailability, getIsoDate, addDays, getRankedStudyIdeas } from '../planner-engine.js';
 
-export function renderPlannerView(state: AppState, selectedDate?: string): string {
+export function renderPlannerView(state: AppState, selectedDate?: string, mode: 'list' | 'time' = 'list'): string {
   const activeDate = selectedDate || getIsoDate();
   const availability = calculateAvailability(state, activeDate);
   const tasks = state.tasks.filter(t => t.day === activeDate);
@@ -17,147 +17,147 @@ export function renderPlannerView(state: AppState, selectedDate?: string): strin
   const prevDate = addDays(activeDate, -1);
   const nextDate = addDays(activeDate, 1);
 
+  const doneCount = tasks.filter(t => t.done).length;
+  const plannedMinutes = tasks.reduce((acc, t) => acc + t.minutes, 0);
+  const targetMinutes = Math.round(availability.availableMinutes * 0.7);
+
+  // Focus sessions studied today
+  const studiedMinutes = Math.floor(
+    state.focusSessions
+      .filter(s => s.day === activeDate)
+      .reduce((acc, s) => acc + s.seconds, 0) / 60
+  );
+
+  const dateHeading = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  }).format(new Date(activeDate + 'T12:00:00Z'));
+
+  const availHours = (availability.availableMinutes / 60).toFixed(1);
+
   return `
-    <div class="page-container planner-page">
-      <!-- Date Bar & Controls -->
-      <header class="planner-header liquid-glass-panel">
-        <div class="date-navigator">
-          <button type="button" class="btn quiet date-nav-btn" data-action="change-date" data-day="${prevDate}">
-            ${icon('arrow-left', 18)}
+    <div class="page planner-page">
+      <div class="section-head intro">
+        <div>
+          <p class="eyebrow">YOUR STUDY PLAN</p>
+          <h1>Planner</h1>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="button outline" data-action="propose-plan" data-day="${activeDate}">
+            ${icon('leaf')} Suggest a plan
           </button>
-          <div class="current-date-info">
-            <h1 class="active-date-heading">${new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(activeDate + 'T12:00:00Z'))}</h1>
-            <span class="active-date-sub">${tasks.length} activities scheduled · ${Math.floor(availability.availableMinutes / 60)}h ${availability.availableMinutes % 60}m available</span>
-          </div>
-          <button type="button" class="btn quiet date-nav-btn" data-action="change-date" data-day="${nextDate}">
-            ${icon('arrow-right', 18)}
+          <button type="button" class="button primary" data-action="open-add-custom-task" data-day="${activeDate}">
+            ${icon('plus')} Add task
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-bottom: 20px;">
+        <div class="date-tools">
+          <button type="button" class="tool" data-action="change-date" data-day="${prevDate}" title="Previous day">
+            ${icon('chevron-left')}
+          </button>
+          <input type="date" id="planner-date-input" value="${activeDate}" data-action="select-date">
+          <button type="button" class="tool" data-action="change-date" data-day="${nextDate}" title="Next day">
+            ${icon('chevron-right')}
           </button>
         </div>
 
-        <div class="planner-top-actions">
-          <div class="date-commitments">
-            <label class="toggle-pill ${availability.school ? 'active' : ''}">
-              <input type="checkbox" data-action="toggle-school" data-day="${activeDate}" ${availability.school ? 'checked' : ''}>
-              <span>School</span>
-            </label>
-            <label class="toggle-pill ${availability.tuition ? 'active' : ''}">
-              <input type="checkbox" data-action="toggle-tuition" data-day="${activeDate}" ${availability.tuition ? 'checked' : ''}>
-              <span>Tuition</span>
-            </label>
-          </div>
-
-          <button type="button" class="btn secondary" data-action="rescue-backlog" data-day="${activeDate}">
-            ${icon('rotate-ccw', 15)} Rescue Backlog
+        <div class="segments" aria-label="Plan view">
+          <button type="button" data-action="planner-mode" data-value="list" aria-pressed="${mode === 'list'}">
+            ${icon('list')} Checklist
           </button>
-          <button type="button" class="btn primary" data-action="propose-plan" data-day="${activeDate}">
-            ${icon('sparkles', 15)} Propose Plan
+          <button type="button" data-action="planner-mode" data-value="time" aria-pressed="${mode === 'time'}">
+            ${icon('calendar-range')} Timetable
           </button>
         </div>
-      </header>
+      </div>
 
-      <!-- Two column planner layout -->
-      <div class="planner-layout">
-        <!-- Main Scheduled Tasks List -->
-        <main class="planner-main-column">
-          <div class="column-card liquid-glass-panel">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Scheduled Activities</h2>
-                <p class="panel-subtitle">Click any activity to open the interactive Study Workspace</p>
-              </div>
-              <button type="button" class="btn quiet btn-sm" data-action="open-add-custom-task" data-day="${activeDate}">
-                ${icon('plus', 14)} Add custom activity
-              </button>
-            </div>
+      <section class="planner-availability" style="padding: 22px; background: #fff8; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <p class="eyebrow">${dateHeading}</p>
+          <h2 style="font-size: 26px; margin: 4px 0;">${targetMinutes}m <span style="font-size: 15px; color: var(--soft); font-weight: normal;">suggested study</span></h2>
+          <p style="color: var(--soft); font-size: 13px;">${availHours}h available · ${plannedMinutes}m planned · ${studiedMinutes}m studied</p>
+        </div>
 
-            ${tasks.length ? `
-              <div class="planner-task-list">
-                ${tasks.map(task => {
-                  const sub = getSubject(task.subjectId);
-                  return `
-                    <div class="planner-task-card liquid-glass-subcard ${task.done ? 'task-done' : ''}" data-task-id="${task.id}">
-                      <div class="task-drag-handle" aria-hidden="true">⋮⋮</div>
-                      <button type="button" class="task-check-btn" data-action="quick-toggle-task" data-task-id="${task.id}" aria-label="Toggle completed">
-                        ${task.done ? icon('check', 16) : ''}
-                      </button>
-                      <div class="task-content" data-action="open-study-workspace" data-task-id="${task.id}">
-                        <div class="task-title-row">
-                          <h3 class="task-title">${task.title}</h3>
-                          <span class="subject-tag subject-${task.subjectId}">${sub?.title || task.subjectId}</span>
-                        </div>
-                        <p class="task-reason">${task.recommendationReason || ''}</p>
-                        <div class="task-footer">
-                          <span>${icon('timer', 14)} ${task.minutes} min</span>
-                          ${task.time ? `<span>${task.time}</span>` : ''}
-                          <span class="activity-pill">${task.activityType.replace('_', ' ')}</span>
-                        </div>
-                      </div>
-                      <div class="task-actions">
-                        <button type="button" class="btn-icon" data-action="delete-task" data-task-id="${task.id}" aria-label="Delete task">
-                          ${icon('trash', 16)}
-                        </button>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            ` : `
-              <div class="empty-state-card">
-                <p class="empty-text">No study activities scheduled for this date.</p>
-                <div class="empty-actions">
-                  <button type="button" class="btn primary" data-action="propose-plan" data-day="${activeDate}">
-                    ${icon('sparkles', 16)} Propose Balanced Schedule
-                  </button>
+        <div class="attendance-controls" style="display: flex; gap: 14px; align-items: center;">
+          <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" data-action="toggle-school" data-day="${activeDate}" ${availability.school ? 'checked' : ''}>
+            <span></span>
+            <span style="font-size:12px; font-weight:600;">School today</span>
+          </label>
+          <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" data-action="toggle-tuition" data-day="${activeDate}" ${availability.tuition ? 'checked' : ''}>
+            <span></span>
+            <span style="font-size:12px; font-weight:600;">Tuition today</span>
+          </label>
+          <button type="button" class="button quiet" data-action="rescue-backlog" data-day="${activeDate}" title="Rescue past due items into today">
+            ${icon('rotate-ccw')} Rescue Backlog
+          </button>
+        </div>
+      </section>
+
+      <p class="planning-explanation" style="color:var(--soft); font-size:13px; margin: 0 0 24px;">
+        Study blocks follow your chapter progress, tests and session rhythm, with breaks between them. Changes stay a proposal until you approve.
+      </p>
+
+      <div class="planner-grid">
+        <section>
+          <div class="section-head">
+            <h2>${mode === 'time' ? 'Timetable' : 'Tasks'}</h2>
+            <span class="muted">${doneCount} / ${tasks.length} done</span>
+          </div>
+
+          <div class="rows">
+            ${tasks.length > 0 ? tasks.map(task => `
+              <article class="task-row ${task.done ? 'done' : ''}" data-task-id="${task.id}">
+                <input type="checkbox" class="task-check" data-action="quick-toggle-task" data-task-id="${task.id}" ${task.done ? 'checked' : ''} aria-label="Mark task done">
+                <div class="row-main">
+                  <span class="subject subject-${task.subjectId}">${getSubject(task.subjectId)?.title || task.subjectId}</span>
+                  <strong>${task.title}</strong>
+                  <small>${task.recommendationReason || task.learningObjective}</small>
                 </div>
+                <span class="row-time">${task.minutes} min</span>
+                <button type="button" class="tool" data-action="open-study-workspace" data-task-id="${task.id}" title="Open study workspace">
+                  ${icon('play')}
+                </button>
+                <button type="button" class="tool" data-action="delete-task" data-task-id="${task.id}" title="Delete task">
+                  ${icon('trash')}
+                </button>
+              </article>
+            `).join('') : `
+              <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+                No tasks scheduled for this day. Click "Suggest a plan" or add an activity from the suggestions rail.
               </div>
             `}
           </div>
-        </main>
+        </section>
 
-        <!-- Right Side: Actionable Suggestions Rail -->
-        <aside class="planner-side-rail">
-          <div class="column-card liquid-glass-panel">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Recommended Study</h2>
-                <p class="panel-subtitle">Actionable next activities based on your CBSE priorities</p>
-              </div>
-            </div>
-
-            <div class="suggested-ideas-list">
-              ${ideas.map(idea => {
-                const sub = getSubject(idea.subjectId);
-                return `
-                  <div class="idea-card liquid-glass-subcard">
-                    <div class="idea-top">
-                      <span class="subject-tag subject-${idea.subjectId}">${sub?.title || idea.subjectId}</span>
-                      <span class="duration-badge">${idea.minutes}m</span>
-                    </div>
-                    <h4 class="idea-title">${idea.title}</h4>
-                    <p class="idea-reason">${idea.reason}</p>
-                    <div class="idea-actions">
-                      <button type="button" class="btn secondary btn-sm" data-action="add-idea-to-plan" data-idea='${JSON.stringify({
-                        title: idea.title,
-                        subjectId: idea.subjectId,
-                        chapterId: idea.chapterId,
-                        topicId: idea.topicId,
-                        activityType: idea.activityType,
-                        objective: idea.objective,
-                        steps: idea.steps,
-                        resourceRefs: idea.resourceRefs,
-                        completionEvidence: idea.completionEvidence,
-                        minutes: idea.minutes,
-                        reason: idea.reason
-                      }).replace(/'/g, "&#39;")}'>
-                        ${icon('plus', 14)} Add to today
-                      </button>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
+        <section>
+          <div class="section-head">
+            <h2>Suggested study</h2>
           </div>
-        </aside>
+
+          <div class="rows">
+            ${ideas.length > 0 ? ideas.map(idea => `
+              <article class="idea" style="display: flex; gap: 12px; align-items: center; padding: 12px 6px; border-bottom: 1px solid var(--line);">
+                <div class="row-main" style="flex: 1; min-width: 0;">
+                  <span class="subject subject-${idea.subjectId}">${getSubject(idea.subjectId)?.title || idea.subjectId}</span>
+                  <strong>${idea.title}</strong>
+                  <small style="color: var(--soft);">${idea.reason} · ${idea.minutes} min</small>
+                </div>
+                <button type="button" class="tool" data-action="add-idea-task" data-chapter-id="${idea.chapterId}" data-subject-id="${idea.subjectId}" title="Add to today's plan">
+                  ${icon('plus')}
+                </button>
+              </article>
+            `).join('') : `
+              <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+                No study suggestions found. Update your syllabus topic statuses to receive tailored activities.
+              </div>
+            `}
+          </div>
+        </section>
       </div>
     </div>
   `;

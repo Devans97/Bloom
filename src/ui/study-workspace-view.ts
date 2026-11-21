@@ -18,117 +18,123 @@ export function renderStudyWorkspace(task: ActionableTask, state: AppState): str
   const completedIndices = new Set(task.completedStepIndices || []);
 
   return `
-    <div class="workspace-backdrop" data-workspace-id="${task.id}">
-      <div class="workspace-panel liquid-glass-panel">
-        <header class="workspace-header">
-          <div class="workspace-meta">
-            <span class="subject-tag subject-${task.subjectId}">${subject?.title || task.subjectId}</span>
-            <span class="activity-type-badge">${task.activityType.replace('_', ' ')}</span>
-            <span class="duration-badge">${icon('timer', 14)} ${task.minutes} min</span>
-          </div>
-          <button type="button" class="btn-icon close-workspace" data-action="close-workspace" aria-label="Close Study Workspace">
-            ${icon('x', 20)}
+    <div class="workspace-backdrop" data-workspace-id="${task.id}" style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+      <div class="activity-workspace" style="width:min(860px,100%); background:var(--paper); border:1px solid var(--line); border-radius:24px; box-shadow:0 24px 70px rgba(0,0,0,0.25); max-height:92vh; overflow-y:auto; padding:clamp(20px,3.5vw,36px);">
+        
+        <div class="activity-nav" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <button type="button" class="button quiet" data-action="close-workspace">
+            ${icon('arrow-left')} Close Workspace
           </button>
-        </header>
+          <span style="font-size:12px; font-weight:700; color:var(--rose-dark); letter-spacing:.08em;">
+            ${subject?.title || task.subjectId} · ${task.minutes} MIN
+          </span>
+        </div>
 
-        <div class="workspace-body">
-          <div class="workspace-main">
-            <h1 class="workspace-title">${task.title}</h1>
-            <p class="workspace-chapter">${chapter?.title || 'Chapter Study'} · ${chapter?.unitGroup || ''}</p>
+        <div class="section-head intro" style="margin-bottom:20px;">
+          <div>
+            <p class="eyebrow">${subject?.title || task.subjectId} · ${chapter?.title || 'CHAPTER'}</p>
+            <h1 style="font-size:32px; font-family:var(--display);">${task.title}</h1>
+            <p class="muted">${chapter?.unitGroup || ''} · ${chapter?.ncertRef || ''}</p>
+          </div>
+        </div>
 
-            ${task.recommendationReason ? `
-              <div class="why-card glass-subcard">
-                <span class="why-label">${icon('sparkles', 15)} Why this is next</span>
-                <p class="why-text">${task.recommendationReason}</p>
-              </div>
-            ` : ''}
+        <!-- Focus Timer Card -->
+        <div style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div>
+            <p class="eyebrow" style="margin:0 0 4px;">FOCUS SESSION</p>
+            <div id="workspace-timer-display" style="font-size:38px; font-family:var(--display); font-weight:700; color:var(--rose-dark); letter-spacing:1px;">
+              25:00
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="button primary" id="timer-start-pause" data-action="timer-toggle">
+              ${icon('play')} <span id="timer-btn-label">Start Focus</span>
+            </button>
+            <button type="button" class="button outline" data-action="timer-reset">
+              ${icon('rotate-ccw')} Reset
+            </button>
+          </div>
+        </div>
 
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon('bookmark', 16)} Learning Objective</h2>
-              <div class="objective-card glass-subcard">
-                <p>${task.learningObjective || 'Master core concepts and verify independent understanding through practice.'}</p>
-              </div>
-            </section>
+        <!-- Learning Objective -->
+        <div class="activity-reason" style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px;">
+          <strong style="display:block; font-size:15px; margin-bottom:6px;">Your learning objective</strong>
+          <p style="margin:0; font-size:14px; line-height:1.6; color:var(--ink);">${task.learningObjective || 'Master core concepts and verify independent understanding through practice.'}</p>
+          ${task.recommendationReason ? `<p class="muted" style="font-size:12px; margin-top:8px;">${task.recommendationReason}</p>` : ''}
+        </div>
 
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon('clipboard-check', 16)} Actionable Steps (${completedIndices.size}/${steps.length})</h2>
-              <div class="steps-list">
-                ${steps.map((step, idx) => {
-                  const isDone = completedIndices.has(idx);
-                  return `
-                    <label class="step-item ${isDone ? 'step-completed' : ''}">
-                      <input type="checkbox" class="step-checkbox" data-task-id="${task.id}" data-step-index="${idx}" ${isDone ? 'checked' : ''}>
-                      <span class="step-number">${idx + 1}</span>
-                      <span class="step-text">${step}</span>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
-            </section>
-
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon('book-open', 16)} Verified Sourced Resources</h2>
-              <div class="resources-list">
-                ${(task.resourceRefs && task.resourceRefs.length ? task.resourceRefs : [chapter?.ncertRef || 'NCERT Class XII Text']).map(ref => `
-                  <div class="resource-card glass-subcard">
-                    <span class="resource-icon">${icon('shield-check', 16)}</span>
-                    <div class="resource-info">
-                      <strong>${ref}</strong>
-                      <span class="provenance-note">Official CBSE Syllabus Prescribed Reference</span>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </section>
-
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon('alert-circle', 16)} Got Stuck or Found a Mistake?</h2>
-              <button type="button" class="btn secondary log-mistake-btn" data-action="open-mistake-drawer" data-task-id="${task.id}" data-chapter-id="${task.chapterId}">
-                ${icon('plus', 16)} Log Doubt / Mistake to Journal
-              </button>
-            </section>
+        <!-- Step-by-step checklist -->
+        <section class="activity-steps" style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px;">
+          <div class="section-head" style="margin-bottom:14px;">
+            <div>
+              <p class="eyebrow">STEP-BY-STEP CHECKLIST</p>
+              <h2 style="font-size:20px;">What to do</h2>
+            </div>
+            <small style="color:var(--soft); font-size:11px;">Complete each step before reflection</small>
           </div>
 
-          <aside class="workspace-sidebar">
-            <div class="focus-timer-card liquid-glass-card">
-              <h3 class="timer-card-title">${icon('timer', 18)} Focus Session</h3>
-              <div class="timer-display" id="workspace-timer-display">25:00</div>
-              <div class="timer-controls">
-                <button type="button" class="btn primary timer-btn" id="timer-start-pause" data-action="timer-toggle">
-                  ${icon('play', 16)} <span id="timer-btn-label">Start Focus</span>
-                </button>
-                <button type="button" class="btn quiet timer-btn-reset" data-action="timer-reset">
-                  ${icon('rotate-ccw', 16)}
-                </button>
-              </div>
-              <p class="timer-hint">Counts actual studied seconds. Saved upon task completion.</p>
-            </div>
+          <div style="display:grid; gap:8px;">
+            ${steps.map((step, idx) => {
+              const isDone = completedIndices.has(idx);
+              return `
+                <label style="display:grid; grid-template-columns:22px 1fr; align-items:start; gap:12px; padding:12px; border-radius:10px; background:${isDone ? 'var(--sage)' : 'var(--white)'}; border:1px solid ${isDone ? 'var(--green)' : 'var(--line)'}; cursor:pointer;">
+                  <input type="checkbox" data-action="toggle-step" data-task-id="${task.id}" data-step-index="${idx}" ${isDone ? 'checked' : ''} style="margin-top:3px; accent-color:var(--rose);">
+                  <div>
+                    <small style="display:block; color:var(--rose-dark); font-size:10px; font-weight:700;">STEP ${idx + 1}</small>
+                    <span style="font-size:13px; line-height:1.5; ${isDone ? 'text-decoration:line-through; color:var(--green);' : ''}">${step}</span>
+                  </div>
+                </label>
+              `;
+            }).join('')}
+          </div>
+        </section>
 
-            <div class="completion-card liquid-glass-card">
-              <h3 class="completion-card-title">${icon('check', 18)} Mark Complete</h3>
-              <p class="completion-hint">How did this activity feel? Select your shared clarity rating to calibrate your next spaced review:</p>
-
-              <div class="rating-selector">
-                <button type="button" class="rating-btn rating-easy" data-action="complete-task" data-task-id="${task.id}" data-rating="Easy">
-                  <strong>Easy</strong>
-                  <span>Review in 7 days</span>
-                </button>
-                <button type="button" class="rating-btn rating-okay" data-action="complete-task" data-task-id="${task.id}" data-rating="Okay">
-                  <strong>Okay</strong>
-                  <span>Review in 3 days</span>
-                </button>
-                <button type="button" class="rating-btn rating-difficult" data-action="complete-task" data-task-id="${task.id}" data-rating="Difficult">
-                  <strong>Difficult</strong>
-                  <span>Review tomorrow</span>
-                </button>
-              </div>
-
-              <div class="evidence-box">
-                <small><strong>Completion evidence:</strong> ${task.completionEvidence || 'Self-checked and rating logged.'}</small>
-              </div>
-            </div>
-          </aside>
+        <!-- Doubt / Mistake Logger Drawer trigger -->
+        <div style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-size:14px; display:block;">Got stuck or made an error?</strong>
+            <p class="muted" style="margin:2px 0 0; font-size:12px;">Log it to your Mistake Journal to schedule a focused retry session.</p>
+          </div>
+          <button type="button" class="button outline" data-action="open-new-mistake-modal" data-task-id="${task.id}" data-chapter-id="${task.chapterId}">
+            ${icon('plus')} Log Doubt / Mistake
+          </button>
         </div>
+
+        <!-- Reflection / Understanding Rating -->
+        <fieldset class="activity-reflection" style="border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:24px; background:#fff8;">
+          <legend style="padding:0 8px; font-size:13px; font-weight:700; color:var(--ink);">How did this session feel?</legend>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Easy" style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center;">
+                😊 Easy
+              </span>
+            </label>
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Okay" checked style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center; background:var(--blush); border-color:var(--rose);">
+                😐 Okay
+              </span>
+            </label>
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Difficult" style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center;">
+                🤔 Difficult
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Workspace Footer Actions -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--line); padding-top:20px;">
+          <button type="button" class="button outline" data-action="close-workspace">
+            Save and continue later
+          </button>
+          <button type="button" class="button primary" data-action="finish-workspace-task" data-task-id="${task.id}">
+            ${icon('check')} Complete this activity
+          </button>
+        </div>
+
       </div>
     </div>
   `;

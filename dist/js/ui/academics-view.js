@@ -1,140 +1,143 @@
 /**
  * BLOOM — Academics & Syllabus View
- * Full hierarchical explorer with CBSE official provenance.
+ * Authentic two-column layout matching Apple Liquid Glass & CBSE official syllabus provenance.
  */
 import { icon } from './icons.js';
 import { CBSE_SUBJECTS, CBSE_CHAPTERS, getSubject } from '../curriculum.js';
-import { daysDifference, getIsoDate } from '../planner-engine.js';
-import { computeAcademicProgress } from '../academic-engine.js';
-export function renderAcademicsView(state, activeSubjectId = 'physics') {
-    const todayStr = getIsoDate();
+import { computeAcademicProgress, buildActionableActivity } from '../academic-engine.js';
+export function renderAcademicsView(state, activeSubjectId = 'physics', selectedChapterId) {
     const currentSubject = getSubject(activeSubjectId) || CBSE_SUBJECTS[0];
     const chapters = CBSE_CHAPTERS.filter(c => c.subjectId === currentSubject.id);
+    const activeChapter = chapters.find(c => c.id === selectedChapterId) || chapters[0];
     const progress = computeAcademicProgress(state);
-    const subStats = progress.subjectStats[currentSubject.id];
-    const examDaysAway = daysDifference(todayStr, currentSubject.examDate);
+    const activeChapProgress = state.chapterProgress[activeChapter.id];
+    const activeStatus = activeChapProgress?.status || 'Not started';
     return `
-    <div class="page-container academics-page">
-      <header class="academics-header liquid-glass-panel">
+    <div class="page academics-page">
+      <div class="section-head intro">
         <div>
-          <span class="eyebrow-text">OFFICIAL CBSE CLASS XII 2026-27</span>
-          <h1 class="page-title">Academics & Syllabus</h1>
-          <p class="page-subtitle">Track your learning status topic by topic. Unmarked means unknown until you set it.</p>
+          <p class="eyebrow">CBSE CLASS XII · 2026–27</p>
+          <h1>Your academic world</h1>
+          <p class="muted">Choose a chapter to see its verified scope and recorded learning.</p>
         </div>
+      </div>
 
-        <!-- 5 Subject Tab Pills -->
-        <nav class="subject-tabs-nav" aria-label="Subjects">
-          ${CBSE_SUBJECTS.map(s => `
-            <button type="button" class="subject-nav-pill ${s.id === currentSubject.id ? 'active' : ''}" data-action="switch-subject" data-subject-id="${s.id}">
-              <span class="sub-pill-code">${s.code}</span>
-              <span class="sub-pill-title">${s.title}</span>
-            </button>
-          `).join('')}
-        </nav>
-      </header>
+      <div class="subject-tabs" aria-label="Subjects">
+        ${CBSE_SUBJECTS.map(s => `
+          <button type="button" class="button outline" data-action="switch-subject" data-subject-id="${s.id}" aria-pressed="${currentSubject.id === s.id}">
+            ${s.title}
+          </button>
+        `).join('')}
+      </div>
 
-      <!-- Subject Overview Card -->
-      <section class="subject-meta-card liquid-glass-panel">
-        <div class="sub-meta-top">
-          <div>
-            <span class="subject-tag subject-${currentSubject.id}">CBSE ${currentSubject.code} · ${currentSubject.title}</span>
-            <h2 class="sub-headline">${currentSubject.title} Board Examination</h2>
-            <p class="sub-exam-details">
-              ${new Intl.DateTimeFormat('en-GB', { dateStyle: 'full' }).format(new Date(currentSubject.examDate + 'T12:00:00Z'))} · ${currentSubject.examTime}
-            </p>
+      <div class="academic-two-column">
+        <aside class="academic-chapters">
+          <div class="section-head">
+            <div>
+              <h2>${currentSubject.title}</h2>
+              <p class="muted">${chapters.length} syllabus chapters</p>
+            </div>
           </div>
-          <div class="sub-countdown-box glass-subcard">
-            <strong class="countdown-days">${examDaysAway > 0 ? examDaysAway : 0}</strong>
-            <span>days until board paper</span>
-          </div>
-        </div>
-
-        <div class="sub-meta-details-row">
-          <span><strong>Assessment Structure:</strong> ${currentSubject.theoryMarks} Theory + ${currentSubject.internalMarks} Practical / Internal</span>
-          <span><strong>Learned:</strong> ${subStats.learned} of ${subStats.total} chapters (${subStats.percent}%)</span>
-        </div>
-
-        <div class="sub-official-note glass-subcard">
-          <span class="note-icon">${icon('shield-check', 16)}</span>
-          <p>${currentSubject.officialNote} <a href="${currentSubject.syllabusUrl}" target="_blank" rel="noopener" class="official-link">Official CBSE Syllabus PDF ${icon('external-link', 12)}</a></p>
-        </div>
-      </section>
-
-      <!-- Chapters & Topics List -->
-      <section class="chapters-accordion-section">
-        <h3 class="section-title">Course Units & Chapters</h3>
-
-        <div class="chapters-stack">
-          ${chapters.map(chap => {
-        const p = state.chapterProgress[chap.id];
-        const status = p?.status || 'Not started';
-        const rating = p?.rating;
+          ${chapters.map(c => {
+        const p = state.chapterProgress[c.id];
+        const isMarked = p && p.status !== 'Not started';
         return `
-              <article class="chapter-card liquid-glass-panel" data-chapter-id="${chap.id}">
-                <div class="chapter-header-row">
-                  <div class="chapter-info">
-                    <span class="unit-group-pill">${chap.unitGroup}</span>
-                    <h4 class="chapter-title">${chap.title}</h4>
-                    <span class="ncert-text">${chap.ncertRef}</span>
-                  </div>
-
-                  <div class="chapter-status-controls">
-                    <div class="select-wrapper">
-                      <label class="sr-only" for="status-${chap.id}">Status for ${chap.title}</label>
-                      <select id="status-${chap.id}" class="glass-select status-select" data-action="update-chapter-status" data-chapter-id="${chap.id}">
-                        <option value="Not started" ${status === 'Not started' ? 'selected' : ''}>Not started</option>
-                        <option value="Learning" ${status === 'Learning' ? 'selected' : ''}>Learning</option>
-                        <option value="Learned" ${status === 'Learned' ? 'selected' : ''}>Learned</option>
-                        <option value="Practising" ${status === 'Practising' ? 'selected' : ''}>Practising</option>
-                        <option value="Needs revision" ${status === 'Needs revision' ? 'selected' : ''}>Needs revision</option>
-                        <option value="Exam ready" ${status === 'Exam ready' ? 'selected' : ''}>Exam ready</option>
-                      </select>
-                    </div>
-
-                    <div class="select-wrapper">
-                      <label class="sr-only" for="rating-${chap.id}">Clarity for ${chap.title}</label>
-                      <select id="rating-${chap.id}" class="glass-select rating-select" data-action="update-chapter-rating" data-chapter-id="${chap.id}">
-                        <option value="" ${!rating ? 'selected' : ''}>No Rating</option>
-                        <option value="Difficult" ${rating === 'Difficult' ? 'selected' : ''}>Difficult</option>
-                        <option value="Okay" ${rating === 'Okay' ? 'selected' : ''}>Okay</option>
-                        <option value="Easy" ${rating === 'Easy' ? 'selected' : ''}>Easy</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Topics list under this chapter -->
-                <div class="topics-container">
-                  <span class="topics-heading">Prescribed Topics & Learning Activities:</span>
-                  <div class="topics-grid">
-                    ${chap.topics.map(top => `
-                      <div class="topic-subcard glass-subcard">
-                        <div class="topic-header">
-                          <h5 class="topic-title">${top.title}</h5>
-                          <span class="topic-ref">${top.ncertRef}</span>
-                        </div>
-
-                        <ul class="core-concepts-pills">
-                          ${top.coreConcepts.map(c => `<li>${c}</li>`).join('')}
-                        </ul>
-
-                        <div class="topic-actions-row">
-                          <button type="button" class="btn quiet btn-sm" data-action="launch-topic-activity" data-chapter-id="${chap.id}" data-topic-id="${top.id}" data-mode="learning">
-                            ${icon('book-open', 14)} Learn
-                          </button>
-                          <button type="button" class="btn quiet btn-sm" data-action="launch-topic-activity" data-chapter-id="${chap.id}" data-topic-id="${top.id}" data-mode="practice">
-                            ${icon('clipboard-check', 14)} Practice Questions
-                          </button>
-                        </div>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              </article>
+              <button type="button" class="academic-chapter ${c.id === activeChapter.id ? 'selected' : ''}" data-action="select-chapter" data-chapter-id="${c.id}">
+                <strong>${c.title}</strong>
+                <small>${c.unitGroup} · ${isMarked ? p.status : 'Unmarked'}</small>
+              </button>
             `;
     }).join('')}
+        </aside>
+
+        <div class="academic-chapter-content">
+          <section class="academic-hierarchy">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">${activeChapter.unitGroup}</p>
+                <h2>${activeChapter.title}</h2>
+                <p class="muted">${activeChapter.ncertRef} · ${currentSubject.title}</p>
+              </div>
+              <span class="verification-badge" style="display:inline-flex; align-items:center; gap:6px; background:var(--sage); color:var(--green); border-radius:99px; padding:6px 12px; font-size:11px; font-weight:700;">
+                ${icon('check')} CBSE 2026–27 verified
+              </span>
+            </div>
+
+            <!-- Chapter Status Picker -->
+            <div style="background:#fff8; border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin: 16px 0 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <strong style="font-size:14px; display:block;">Your Chapter Status</strong>
+                <small style="color:var(--soft);">Unmarked means unknown until you set it.</small>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select class="status-select" data-action="update-chapter-status" data-chapter-id="${activeChapter.id}" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 12px; font-size:13px; background:var(--white);">
+                  <option value="Not started" ${activeStatus === 'Not started' ? 'selected' : ''}>Not started</option>
+                  <option value="Learning" ${activeStatus === 'Learning' ? 'selected' : ''}>Learning</option>
+                  <option value="Learned" ${activeStatus === 'Learned' ? 'selected' : ''}>Learned</option>
+                  <option value="Practising" ${activeStatus === 'Practising' ? 'selected' : ''}>Practising</option>
+                  <option value="Needs revision" ${activeStatus === 'Needs revision' ? 'selected' : ''}>Needs revision</option>
+                  <option value="Exam ready" ${activeStatus === 'Exam ready' ? 'selected' : ''}>Exam ready</option>
+                </select>
+                ${activeChapProgress?.rating ? `
+                  <span class="status marked">${activeChapProgress.rating}</span>
+                ` : ''}
+              </div>
+            </div>
+
+            <p class="academic-note" style="color:var(--soft); font-size:12px; line-height:1.6; margin: 0 0 20px;">
+              Topic titles and core concepts below come from the current Class XII ${currentSubject.title} syllabus.
+            </p>
+
+            <div class="topic-list">
+              ${activeChapter.topics.map(topic => {
+        const learnAct = buildActionableActivity(topic, activeChapter, 'learning');
+        const practiceAct = buildActionableActivity(topic, activeChapter, 'practice');
+        return `
+                  <article class="topic-card" data-topic-id="${topic.id}">
+                    <div class="topic-card-head">
+                      <div>
+                        <p class="eyebrow">VERIFIED TOPIC</p>
+                        <h3 style="font-size: 18px; margin: 4px 0;">${topic.title}</h3>
+                      </div>
+                      <span class="status marked">${topic.ncertRef}</span>
+                    </div>
+
+                    <div style="margin: 10px 0; font-size: 13px; color: var(--soft); line-height: 1.6;">
+                      <strong>Core Principles:</strong> ${topic.coreConcepts.join(' · ')}
+                      ${topic.keyDerivations?.length ? `<br><strong>Key Derivations:</strong> ${topic.keyDerivations.join(', ')}` : ''}
+                      ${topic.keyFormulas?.length ? `<br><strong>Key Formulas:</strong> ${topic.keyFormulas.join(', ')}` : ''}
+                    </div>
+
+                    <div class="next-activity-card" style="margin-top: 14px;">
+                      <div>
+                        <p class="eyebrow">NEXT ACTIVITY · CONCEPT LEARNING</p>
+                        <h4>${learnAct.title}</h4>
+                        <p>${learnAct.learningObjective}</p>
+                        <small>${learnAct.expectedMinutes} min · Verified NCERT Activity</small>
+                      </div>
+                      <button type="button" class="button primary" data-action="launch-topic-activity" data-topic-id="${topic.id}" data-chapter-id="${activeChapter.id}" data-mode="learning">
+                        ${icon('play')} Learn Concepts
+                      </button>
+                    </div>
+
+                    <div class="next-activity-card" style="margin-top: 10px; background: linear-gradient(135deg, #eaf2eb9c, #fff9 75%); border-color: #49634f35;">
+                      <div>
+                        <p class="eyebrow" style="color: var(--green);">PRACTICE & NUMERICALS</p>
+                        <h4>${practiceAct.title}</h4>
+                        <p>${practiceAct.learningObjective}</p>
+                        <small>${practiceAct.expectedMinutes} min · Board-Pattern Questions</small>
+                      </div>
+                      <button type="button" class="button outline" data-action="launch-topic-activity" data-topic-id="${topic.id}" data-chapter-id="${activeChapter.id}" data-mode="practice">
+                        ${icon('play')} Practice Questions
+                      </button>
+                    </div>
+                  </article>
+                `;
+    }).join('')}
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   `;
 }

@@ -995,58 +995,47 @@ function rescueBacklogTasks(state, fromDate) {
 }
 
 // src/ui/icons.ts
-function icon(name, size = 18, className = "icon") {
-  const common = `class="${className}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"`;
-  switch (name) {
-    case "sun":
-      return `<svg ${common}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
-    case "calendar":
-      return `<svg ${common}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`;
-    case "book-open":
-      return `<svg ${common}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
-    case "clipboard-check":
-      return `<svg ${common}><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>`;
-    case "flower":
-      return `<svg ${common}><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m4.5 3a4.5 4.5 0 1 1-4.5 4.5M16.5 12H15m-3 4.5a4.5 4.5 0 1 1-4.5-4.5M12 16.5V15m-4.5-3A4.5 4.5 0 1 1 12 7.5M7.5 12H9"/><circle cx="12" cy="12" r="2"/></svg>`;
-    case "sparkles":
-      return `<svg ${common}><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>`;
-    case "timer":
-      return `<svg ${common}><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>`;
-    case "arrow-right":
-      return `<svg ${common}><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
-    case "arrow-left":
-      return `<svg ${common}><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
-    case "check":
-      return `<svg ${common}><polyline points="20 6 9 17 4 12"/></svg>`;
-    case "x":
-      return `<svg ${common}><path d="M18 6 6 18M6 6l12 12"/></svg>`;
-    case "play":
-      return `<svg ${common}><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
-    case "pause":
-      return `<svg ${common}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-    case "rotate-ccw":
-      return `<svg ${common}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
-    case "bookmark":
-      return `<svg ${common}><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
-    case "alert-circle":
-      return `<svg ${common}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>`;
-    case "lock":
-      return `<svg ${common}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-    case "unlock":
-      return `<svg ${common}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
-    case "external-link":
-      return `<svg ${common}><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
-    case "plus":
-      return `<svg ${common}><path d="M5 12h14M12 5v14"/></svg>`;
-    case "trash":
-      return `<svg ${common}><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
-    case "edit":
-      return `<svg ${common}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`;
-    case "shield-check":
-      return `<svg ${common}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`;
-    default:
-      return `<svg ${common}><circle cx="12" cy="12" r="10"/></svg>`;
-  }
+var icons = {
+  "sun": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+  "calendar": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>`,
+  "calendar-days": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>`,
+  "book-open": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`,
+  "clipboard-list": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>`,
+  "clipboard-check": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>`,
+  "settings": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>`,
+  "arrow-right": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`,
+  "arrow-left": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>`,
+  "arrow-up-right": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>`,
+  "plus": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`,
+  "chevron-left": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>`,
+  "chevron-right": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`,
+  "check": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`,
+  "clock-3": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6h4"/></svg>`,
+  "x": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+  "pencil": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>`,
+  "edit": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>`,
+  "trash-2": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+  "trash": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+  "grip-vertical": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>`,
+  "image-plus": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><circle cx="9" cy="9" r="2"/></svg>`,
+  "chevron-down": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`,
+  "leaf": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`,
+  "list": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>`,
+  "calendar-range": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M17 14h-6"/><path d="M13 18H7"/><path d="M7 14h.01"/><path d="M17 18h.01"/></svg>`,
+  "circle-check": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
+  "flower": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/></svg>`,
+  "sparkles": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>`,
+  "sparkle": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>`,
+  "play": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
+  "pause": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`,
+  "rotate-ccw": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+  "timer": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>`,
+  "lock": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  "unlock": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
+  "shield-check": `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`
+};
+function icon(name, _size, _className) {
+  return icons[name] || icons["leaf"] || `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`;
 }
 
 // src/ui/today-view.ts
@@ -1087,463 +1076,549 @@ function renderTodayView(state) {
   const actualSeconds = todaySessions.reduce((acc, s) => acc + s.seconds, 0);
   const actualMinutes = Math.floor(actualSeconds / 60);
   const plannedMinutes = todayTasks.reduce((acc, t) => acc + t.minutes, 0);
+  const targetMinutes = Math.round(availability.availableMinutes * 0.7);
   const completedTasksCount = todayTasks.filter((t) => t.done).length;
+  const remainingTasksCount = todayTasks.length - completedTasksCount;
+  const progressPercent = targetMinutes > 0 ? Math.min(100, Math.round(actualMinutes / targetMinutes * 100)) : 0;
+  const nextExamDate = /* @__PURE__ */ new Date("2027-02-16T10:30:00+05:30");
+  const now = /* @__PURE__ */ new Date();
+  const diffTime = nextExamDate.getTime() - now.getTime();
+  const daysAway = Math.max(0, Math.ceil(diffTime / (1e3 * 60 * 60 * 24)));
+  const heroSubject = heroTask ? getSubject(heroTask.subjectId) : null;
+  const flowerCount = state.garden.bloomsEarned || 1;
+  const availHours = (availability.availableMinutes / 60).toFixed(1);
   return `
-    <div class="page-container today-page">
-      <header class="greeting-header">
-        <p class="eyebrow-text">YOUR BOARD PREPARATION, A LITTLE CLEARER</p>
-        <h1 class="greeting-title">Hello, ${learnerName}.</h1>
-        <p class="greeting-subtitle">One thoughtful step at a time.</p>
-      </header>
+    <div class="page today-page">
+      <div class="dashboard-greeting">
+        <div>
+          <p class="eyebrow">YOUR BOARD PREPARATION, A LITTLE CLEARER</p>
+          <h1>Hello, ${learnerName}.</h1>
+          <p>One thoughtful step at a time.</p>
+        </div>
+        <a class="dashboard-garden" href="#tools" data-nav="tools">
+          ${icon("leaf")} <span>${flowerCount} ${flowerCount === 1 ? "flower" : "flowers"} in bloom</span>
+        </a>
+      </div>
 
       ${heroTask ? `
-        <section class="hero-study-card liquid-glass-panel">
-          <div class="hero-card-content">
-            <span class="hero-eyebrow">YOUR NEXT STUDY STEP</span>
-            <div class="hero-meta">
-              <span class="subject-tag subject-${heroTask.subjectId}">${getSubject(heroTask.subjectId)?.title || heroTask.subjectId}</span>
-              <span class="activity-type-badge">${heroTask.activityType.replace("_", " ")}</span>
+        <section class="focus-band" aria-label="Suggested next step">
+          <div class="focus-content">
+            <p class="eyebrow">YOUR NEXT STUDY STEP</p>
+            <div class="subject subject-${heroTask.subjectId}">${heroSubject?.title || heroTask.subjectId}</div>
+            <h2>${heroTask.title}</h2>
+            <p>${heroTask.recommendationReason || heroTask.learningObjective}</p>
+            <div>
+              <button type="button" class="button primary" data-action="open-study-workspace" data-task-id="${heroTask.id}">
+                ${icon("play")} Start studying
+              </button>
             </div>
-            <h2 class="hero-task-title">${heroTask.title}</h2>
-            <p class="hero-task-reason">${heroTask.recommendationReason || "Highest priority for upcoming board readiness."}</p>
-            <div class="hero-details">
-              <span>${icon("timer", 15)} ${heroTask.minutes} minutes</span>
-              ${heroTask.time ? `<span>${icon("calendar", 15)} Scheduled at ${heroTask.time}</span>` : ""}
-            </div>
-            <button type="button" class="btn primary hero-action-btn" data-action="open-study-workspace" data-task-id="${heroTask.id}">
-              ${icon("play", 18)} Start studying
-            </button>
           </div>
-          <div class="hero-card-art" aria-hidden="true">
-            <div class="botanical-flourish"></div>
+          <div class="focus-art" aria-hidden="true">
+            <img src="./art/cosmos.webp" alt="Cosmos bloom">
+            <i></i><i></i><i></i>
           </div>
         </section>
       ` : `
-        <section class="hero-study-card liquid-glass-panel empty-hero">
-          <div class="hero-card-content">
-            <span class="hero-eyebrow">TODAY\u2019S SCHEDULE IS CLEAR</span>
-            <h2 class="hero-task-title">No pending tasks for today</h2>
-            <p class="hero-task-reason">Generate a balanced plan based on your current CBSE preparation and available hours.</p>
-            <button type="button" class="btn primary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon("sparkles", 18)} Propose Today\u2019s Plan
-            </button>
+        <section class="focus-band" aria-label="Schedule is clear">
+          <div class="focus-content">
+            <p class="eyebrow">TODAY\u2019S SCHEDULE IS CLEAR</p>
+            <h2>No pending tasks for today</h2>
+            <p>Generate a balanced plan based on your current CBSE preparation and available hours.</p>
+            <div>
+              <button type="button" class="button primary" data-action="propose-plan" data-day="${todayStr}">
+                ${icon("leaf")} Propose Today\u2019s Plan
+              </button>
+            </div>
+          </div>
+          <div class="focus-art" aria-hidden="true">
+            <img src="./art/cosmos.webp" alt="Cosmos bloom">
+            <i></i><i></i><i></i>
           </div>
         </section>
       `}
 
-      <!-- Metrics Row -->
-      <section class="metrics-grid">
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">TODAY\u2019S RECORDED FOCUS</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${actualMinutes}</strong>
-            <span class="metric-unit">min studied</span>
+      <section class="day-pulse" aria-label="Today\u2019s actual study activity">
+        <div class="pulse-main">
+          <div class="pulse-ring" style="--progress: ${progressPercent};" role="img" aria-label="${progressPercent}% of study target">
+            <span>${progressPercent}%<small>of target</small></span>
           </div>
-          <span class="metric-sub">${todaySessions.length} recorded focus sessions</span>
+          <div>
+            <p class="eyebrow">TODAY, AT YOUR PACE</p>
+            <h2>${actualMinutes}m <span>studied</span></h2>
+            <p>${targetMinutes > 0 ? `${targetMinutes}m suggested target` : "Set your availability"} \xB7 ${plannedMinutes}m planned</p>
+          </div>
         </div>
-
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">ACTIVITIES COMPLETED</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${completedTasksCount}</strong>
-            <span class="metric-unit">/ ${todayTasks.length} planned</span>
-          </div>
-          <span class="metric-sub">${todayTasks.length - completedTasksCount} remaining today</span>
+        <div class="pulse-detail">
+          <strong>${completedTasksCount}<span> / ${todayTasks.length}</span></strong>
+          <span>activities complete</span>
+          <small>${remainingTasksCount} remaining</small>
         </div>
-
-        <div class="metric-card liquid-glass-card">
-          <span class="metric-label">FREE USABLE TIME</span>
-          <div class="metric-value-row">
-            <strong class="metric-number">${Math.floor(availability.availableMinutes / 60)}h ${availability.availableMinutes % 60}m</strong>
-          </div>
-          <span class="metric-sub">after school and tuition</span>
+        <div class="pulse-detail">
+          <strong>${todaySessions.length}</strong>
+          <span>focus sessions saved</span>
+          <small>${Math.max(0, targetMinutes - actualMinutes)}m to target</small>
         </div>
       </section>
 
-      <!-- Today's Routine & Schedule Grid -->
-      <div class="today-two-col">
-        <section class="routine-panel liquid-glass-panel">
-          <div class="panel-head">
+      <div class="dashboard-columns">
+        <section class="today-plan">
+          <div class="section-head">
             <div>
-              <h3 class="panel-title">Today's Routine & Overrides</h3>
-              <p class="panel-subtitle">Independent school and tuition commitments</p>
+              <h2>Your day, considered.</h2>
+              <p>${availHours}h available before study breaks and rest</p>
             </div>
+            <a href="#planner" class="button quiet">Open planner ${icon("arrow-right")}</a>
           </div>
 
-          <div class="commitment-toggles">
-            <label class="toggle-control">
-              <span class="toggle-label">${icon("book-open", 16)} School Today</span>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-school" data-day="${todayStr}" ${availability.school ? "checked" : ""}>
+          <div class="daily-commitments">
+            <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+              <input type="checkbox" data-action="toggle-school" data-day="${todayStr}" ${availability.school ? "checked" : ""}>
+              <span></span>
+              <span style="font-size:12px; font-weight:600;">School today</span>
             </label>
-
-            <label class="toggle-control">
-              <span class="toggle-label">${icon("clipboard-check", 16)} Tuition Today</span>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-tuition" data-day="${todayStr}" ${availability.tuition ? "checked" : ""}>
+            <label class="switch" style="display:inline-flex; align-items:center; gap:8px; margin-left:14px;">
+              <input type="checkbox" data-action="toggle-tuition" data-day="${todayStr}" ${availability.tuition ? "checked" : ""}>
+              <span></span>
+              <span style="font-size:12px; font-weight:600;">Tuition today</span>
             </label>
           </div>
 
-          <p class="panel-hint">
-            ${availability.school && availability.tuition ? "Both school and tuition are active today." : availability.school ? "School only is active today; tuition time is open for study." : availability.tuition ? "No school today; morning & afternoon are open for study." : "Neither school nor tuition today; full day is available for flexible study."}
-          </p>
+          ${todayTasks.length > 0 ? `
+            <div class="rows">
+              ${todayTasks.slice(0, 4).map((task) => `
+                <article class="task-row ${task.done ? "done" : ""}">
+                  <input type="checkbox" class="task-check" data-action="quick-toggle-task" data-task-id="${task.id}" ${task.done ? "checked" : ""} aria-label="Mark task done">
+                  <div class="row-main">
+                    <span class="subject subject-${task.subjectId}">${getSubject(task.subjectId)?.title || task.subjectId}</span>
+                    <strong>${task.title}</strong>
+                    <small>${task.recommendationReason || task.learningObjective}</small>
+                  </div>
+                  <span class="row-time">${task.minutes} min</span>
+                  <button type="button" class="tool" data-action="open-study-workspace" data-task-id="${task.id}" title="Open study workspace">
+                    ${icon("play")}
+                  </button>
+                </article>
+              `).join("")}
+            </div>
+          ` : `
+            <div class="companion-empty" style="padding:28px 16px; text-align:center; background:#fff8; border-radius:12px; margin-top:14px;">
+              <p style="color:var(--soft); margin-bottom:12px;">Your time is ready.<br>Let\u2019s give it a useful shape.</p>
+              <button type="button" class="button outline" data-action="propose-plan" data-day="${todayStr}">
+                ${icon("leaf")} Suggest today\u2019s plan
+              </button>
+            </div>
+          `}
         </section>
 
-        <section class="syllabus-summary-panel liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h3 class="panel-title">The Bigger Picture</h3>
-              <p class="panel-subtitle">CBSE Class XII 2027 Coverage</p>
-            </div>
-            <a href="#academics" class="link-action" data-nav="academics">View all ${icon("arrow-right", 14)}</a>
+        <section class="academic-glance">
+          <div class="section-head">
+            <h2>The bigger picture</h2>
+            <a href="#academics" class="button quiet">Academics ${icon("arrow-right")}</a>
           </div>
-
-          <div class="progress-bar-container">
-            <div class="progress-fill" style="width: ${progress.overallPercent}%;"></div>
+          <p class="academic-number" style="font-size:36px; font-family:var(--display); color:var(--ink);">${progress.learnedCount}<span> / ${progress.totalChapters}</span></p>
+          <p style="color:var(--soft); font-size:13px; margin:4px 0 12px;">chapters learned, based on your own status</p>
+          <div class="progress-track" role="progressbar" aria-label="Chapters learned" aria-valuenow="${progress.learnedCount}" aria-valuemax="${progress.totalChapters}">
+            <span class="progress-fill" style="transform: scaleX(${progress.overallPercent / 100});"></span>
           </div>
-
-          <div class="progress-stats-row">
-            <span><strong>${progress.learnedCount}</strong> / ${progress.totalChapters} chapters learned</span>
-            <span><strong>${progress.overallPercent}%</strong> self-reported coverage</span>
+          <div class="academic-attention" style="display:flex; gap:12px; margin-top:14px; font-size:12px; color:var(--soft);">
+            <span><strong style="color:var(--ink);">${progress.learningCount}</strong> learning</span>
+            <span><strong style="color:var(--ink);">${progress.needsRevisionCount}</strong> reviews due</span>
+            <span><strong style="color:var(--ink);">${progress.unknownCount}</strong> unmarked</span>
           </div>
-
-          <p class="provenance-disclaimer">
-            ${progress.unknownCount} chapters have no personal status yet. Unmarked means unknown; BLOOM never invents progress.
-          </p>
+          <small style="display:block; margin-top:12px; color:var(--soft); font-size:11px;">Unmarked means unknown. School coverage never counts as your learning.</small>
         </section>
       </div>
 
-      <!-- Today's Task List -->
-      <section class="today-plan-section liquid-glass-panel">
-        <div class="panel-head">
-          <div>
-            <h3 class="panel-title">Today's Study Schedule (${todayTasks.length} activities)</h3>
-            <p class="panel-subtitle">Click any task to enter your interactive Study Workspace</p>
-          </div>
-          <div class="panel-actions">
-            <button type="button" class="btn secondary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon("sparkles", 15)} Propose additions
-            </button>
-            <a href="#planner" class="btn quiet" data-nav="planner">Open Planner</a>
-          </div>
+      <section class="exam-strip" aria-label="Next board exam">
+        <div class="exam-icon">${icon("leaf")}</div>
+        <div>
+          <p class="eyebrow">NEXT BOARD EXAM</p>
+          <h2>Physics</h2>
+          <p>Monday, 16 February 2027 \xB7 ${daysAway} days away</p>
         </div>
-
-        ${todayTasks.length ? `
-          <div class="task-items-list">
-            ${todayTasks.map((task) => {
-    const sub = getSubject(task.subjectId);
-    return `
-                <div class="task-card liquid-glass-subcard ${task.done ? "task-done" : ""}" data-task-id="${task.id}">
-                  <div class="task-card-left">
-                    <button type="button" class="task-check-btn" data-action="quick-toggle-task" data-task-id="${task.id}" aria-label="Mark task done">
-                      ${task.done ? icon("check", 16) : ""}
-                    </button>
-                    <div class="task-info" data-action="open-study-workspace" data-task-id="${task.id}">
-                      <h4 class="task-item-title">${task.title}</h4>
-                      <div class="task-item-meta">
-                        <span class="subject-tag subject-${task.subjectId}">${sub?.title || task.subjectId}</span>
-                        <span>${icon("timer", 13)} ${task.minutes} min</span>
-                        ${task.time ? `<span>${task.time}</span>` : ""}
-                        ${task.activityType ? `<span class="activity-pill">${task.activityType.replace("_", " ")}</span>` : ""}
-                      </div>
-                    </div>
-                  </div>
-                  <button type="button" class="btn quiet btn-sm" data-action="open-study-workspace" data-task-id="${task.id}">
-                    Study ${icon("arrow-right", 14)}
-                  </button>
-                </div>
-              `;
-  }).join("")}
-          </div>
-        ` : `
-          <div class="empty-state-card">
-            <p class="empty-text">No activities scheduled for today yet.</p>
-            <button type="button" class="btn primary" data-action="propose-plan" data-day="${todayStr}">
-              ${icon("plus", 16)} Generate Proposed Plan for Today
-            </button>
-          </div>
-        `}
+        <a href="#academics/physics" class="button outline">Physics syllabus</a>
       </section>
+
+      <footer class="page-foot">
+        <span>Make room for learning.</span>
+        <a href="#tools" data-nav="tools">See your real progress ${icon("arrow-right")}</a>
+      </footer>
     </div>
   `;
 }
 
 // src/ui/planner-view.ts
-function renderPlannerView(state, selectedDate) {
+function renderPlannerView(state, selectedDate, mode = "list") {
   const activeDate = selectedDate || getIsoDate();
   const availability = calculateAvailability(state, activeDate);
   const tasks = state.tasks.filter((t) => t.day === activeDate);
   const ideas = getRankedStudyIdeas(state, activeDate).slice(0, 8);
   const prevDate = addDays(activeDate, -1);
   const nextDate = addDays(activeDate, 1);
+  const doneCount = tasks.filter((t) => t.done).length;
+  const plannedMinutes = tasks.reduce((acc, t) => acc + t.minutes, 0);
+  const targetMinutes = Math.round(availability.availableMinutes * 0.7);
+  const studiedMinutes = Math.floor(
+    state.focusSessions.filter((s) => s.day === activeDate).reduce((acc, s) => acc + s.seconds, 0) / 60
+  );
+  const dateHeading = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  }).format(/* @__PURE__ */ new Date(activeDate + "T12:00:00Z"));
+  const availHours = (availability.availableMinutes / 60).toFixed(1);
   return `
-    <div class="page-container planner-page">
-      <!-- Date Bar & Controls -->
-      <header class="planner-header liquid-glass-panel">
-        <div class="date-navigator">
-          <button type="button" class="btn quiet date-nav-btn" data-action="change-date" data-day="${prevDate}">
-            ${icon("arrow-left", 18)}
+    <div class="page planner-page">
+      <div class="section-head intro">
+        <div>
+          <p class="eyebrow">YOUR STUDY PLAN</p>
+          <h1>Planner</h1>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="button outline" data-action="propose-plan" data-day="${activeDate}">
+            ${icon("leaf")} Suggest a plan
           </button>
-          <div class="current-date-info">
-            <h1 class="active-date-heading">${new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(/* @__PURE__ */ new Date(activeDate + "T12:00:00Z"))}</h1>
-            <span class="active-date-sub">${tasks.length} activities scheduled \xB7 ${Math.floor(availability.availableMinutes / 60)}h ${availability.availableMinutes % 60}m available</span>
-          </div>
-          <button type="button" class="btn quiet date-nav-btn" data-action="change-date" data-day="${nextDate}">
-            ${icon("arrow-right", 18)}
+          <button type="button" class="button primary" data-action="open-add-custom-task" data-day="${activeDate}">
+            ${icon("plus")} Add task
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-bottom: 20px;">
+        <div class="date-tools">
+          <button type="button" class="tool" data-action="change-date" data-day="${prevDate}" title="Previous day">
+            ${icon("chevron-left")}
+          </button>
+          <input type="date" id="planner-date-input" value="${activeDate}" data-action="select-date">
+          <button type="button" class="tool" data-action="change-date" data-day="${nextDate}" title="Next day">
+            ${icon("chevron-right")}
           </button>
         </div>
 
-        <div class="planner-top-actions">
-          <div class="date-commitments">
-            <label class="toggle-pill ${availability.school ? "active" : ""}">
-              <input type="checkbox" data-action="toggle-school" data-day="${activeDate}" ${availability.school ? "checked" : ""}>
-              <span>School</span>
-            </label>
-            <label class="toggle-pill ${availability.tuition ? "active" : ""}">
-              <input type="checkbox" data-action="toggle-tuition" data-day="${activeDate}" ${availability.tuition ? "checked" : ""}>
-              <span>Tuition</span>
-            </label>
-          </div>
-
-          <button type="button" class="btn secondary" data-action="rescue-backlog" data-day="${activeDate}">
-            ${icon("rotate-ccw", 15)} Rescue Backlog
+        <div class="segments" aria-label="Plan view">
+          <button type="button" data-action="planner-mode" data-value="list" aria-pressed="${mode === "list"}">
+            ${icon("list")} Checklist
           </button>
-          <button type="button" class="btn primary" data-action="propose-plan" data-day="${activeDate}">
-            ${icon("sparkles", 15)} Propose Plan
+          <button type="button" data-action="planner-mode" data-value="time" aria-pressed="${mode === "time"}">
+            ${icon("calendar-range")} Timetable
           </button>
         </div>
-      </header>
+      </div>
 
-      <!-- Two column planner layout -->
-      <div class="planner-layout">
-        <!-- Main Scheduled Tasks List -->
-        <main class="planner-main-column">
-          <div class="column-card liquid-glass-panel">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Scheduled Activities</h2>
-                <p class="panel-subtitle">Click any activity to open the interactive Study Workspace</p>
-              </div>
-              <button type="button" class="btn quiet btn-sm" data-action="open-add-custom-task" data-day="${activeDate}">
-                ${icon("plus", 14)} Add custom activity
-              </button>
-            </div>
+      <section class="planner-availability" style="padding: 22px; background: #fff8; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <p class="eyebrow">${dateHeading}</p>
+          <h2 style="font-size: 26px; margin: 4px 0;">${targetMinutes}m <span style="font-size: 15px; color: var(--soft); font-weight: normal;">suggested study</span></h2>
+          <p style="color: var(--soft); font-size: 13px;">${availHours}h available \xB7 ${plannedMinutes}m planned \xB7 ${studiedMinutes}m studied</p>
+        </div>
 
-            ${tasks.length ? `
-              <div class="planner-task-list">
-                ${tasks.map((task) => {
-    const sub = getSubject(task.subjectId);
-    return `
-                    <div class="planner-task-card liquid-glass-subcard ${task.done ? "task-done" : ""}" data-task-id="${task.id}">
-                      <div class="task-drag-handle" aria-hidden="true">\u22EE\u22EE</div>
-                      <button type="button" class="task-check-btn" data-action="quick-toggle-task" data-task-id="${task.id}" aria-label="Toggle completed">
-                        ${task.done ? icon("check", 16) : ""}
-                      </button>
-                      <div class="task-content" data-action="open-study-workspace" data-task-id="${task.id}">
-                        <div class="task-title-row">
-                          <h3 class="task-title">${task.title}</h3>
-                          <span class="subject-tag subject-${task.subjectId}">${sub?.title || task.subjectId}</span>
-                        </div>
-                        <p class="task-reason">${task.recommendationReason || ""}</p>
-                        <div class="task-footer">
-                          <span>${icon("timer", 14)} ${task.minutes} min</span>
-                          ${task.time ? `<span>${task.time}</span>` : ""}
-                          <span class="activity-pill">${task.activityType.replace("_", " ")}</span>
-                        </div>
-                      </div>
-                      <div class="task-actions">
-                        <button type="button" class="btn-icon" data-action="delete-task" data-task-id="${task.id}" aria-label="Delete task">
-                          ${icon("trash", 16)}
-                        </button>
-                      </div>
-                    </div>
-                  `;
-  }).join("")}
-              </div>
-            ` : `
-              <div class="empty-state-card">
-                <p class="empty-text">No study activities scheduled for this date.</p>
-                <div class="empty-actions">
-                  <button type="button" class="btn primary" data-action="propose-plan" data-day="${activeDate}">
-                    ${icon("sparkles", 16)} Propose Balanced Schedule
-                  </button>
+        <div class="attendance-controls" style="display: flex; gap: 14px; align-items: center;">
+          <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" data-action="toggle-school" data-day="${activeDate}" ${availability.school ? "checked" : ""}>
+            <span></span>
+            <span style="font-size:12px; font-weight:600;">School today</span>
+          </label>
+          <label class="switch" style="display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" data-action="toggle-tuition" data-day="${activeDate}" ${availability.tuition ? "checked" : ""}>
+            <span></span>
+            <span style="font-size:12px; font-weight:600;">Tuition today</span>
+          </label>
+          <button type="button" class="button quiet" data-action="rescue-backlog" data-day="${activeDate}" title="Rescue past due items into today">
+            ${icon("rotate-ccw")} Rescue Backlog
+          </button>
+        </div>
+      </section>
+
+      <p class="planning-explanation" style="color:var(--soft); font-size:13px; margin: 0 0 24px;">
+        Study blocks follow your chapter progress, tests and session rhythm, with breaks between them. Changes stay a proposal until you approve.
+      </p>
+
+      <div class="planner-grid">
+        <section>
+          <div class="section-head">
+            <h2>${mode === "time" ? "Timetable" : "Tasks"}</h2>
+            <span class="muted">${doneCount} / ${tasks.length} done</span>
+          </div>
+
+          <div class="rows">
+            ${tasks.length > 0 ? tasks.map((task) => `
+              <article class="task-row ${task.done ? "done" : ""}" data-task-id="${task.id}">
+                <input type="checkbox" class="task-check" data-action="quick-toggle-task" data-task-id="${task.id}" ${task.done ? "checked" : ""} aria-label="Mark task done">
+                <div class="row-main">
+                  <span class="subject subject-${task.subjectId}">${getSubject(task.subjectId)?.title || task.subjectId}</span>
+                  <strong>${task.title}</strong>
+                  <small>${task.recommendationReason || task.learningObjective}</small>
                 </div>
+                <span class="row-time">${task.minutes} min</span>
+                <button type="button" class="tool" data-action="open-study-workspace" data-task-id="${task.id}" title="Open study workspace">
+                  ${icon("play")}
+                </button>
+                <button type="button" class="tool" data-action="delete-task" data-task-id="${task.id}" title="Delete task">
+                  ${icon("trash")}
+                </button>
+              </article>
+            `).join("") : `
+              <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+                No tasks scheduled for this day. Click "Suggest a plan" or add an activity from the suggestions rail.
               </div>
             `}
           </div>
-        </main>
+        </section>
 
-        <!-- Right Side: Actionable Suggestions Rail -->
-        <aside class="planner-side-rail">
-          <div class="column-card liquid-glass-panel">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Recommended Study</h2>
-                <p class="panel-subtitle">Actionable next activities based on your CBSE priorities</p>
-              </div>
-            </div>
-
-            <div class="suggested-ideas-list">
-              ${ideas.map((idea) => {
-    const sub = getSubject(idea.subjectId);
-    return `
-                  <div class="idea-card liquid-glass-subcard">
-                    <div class="idea-top">
-                      <span class="subject-tag subject-${idea.subjectId}">${sub?.title || idea.subjectId}</span>
-                      <span class="duration-badge">${idea.minutes}m</span>
-                    </div>
-                    <h4 class="idea-title">${idea.title}</h4>
-                    <p class="idea-reason">${idea.reason}</p>
-                    <div class="idea-actions">
-                      <button type="button" class="btn secondary btn-sm" data-action="add-idea-to-plan" data-idea='${JSON.stringify({
-      title: idea.title,
-      subjectId: idea.subjectId,
-      chapterId: idea.chapterId,
-      topicId: idea.topicId,
-      activityType: idea.activityType,
-      objective: idea.objective,
-      steps: idea.steps,
-      resourceRefs: idea.resourceRefs,
-      completionEvidence: idea.completionEvidence,
-      minutes: idea.minutes,
-      reason: idea.reason
-    }).replace(/'/g, "&#39;")}'>
-                        ${icon("plus", 14)} Add to today
-                      </button>
-                    </div>
-                  </div>
-                `;
-  }).join("")}
-            </div>
+        <section>
+          <div class="section-head">
+            <h2>Suggested study</h2>
           </div>
-        </aside>
+
+          <div class="rows">
+            ${ideas.length > 0 ? ideas.map((idea) => `
+              <article class="idea" style="display: flex; gap: 12px; align-items: center; padding: 12px 6px; border-bottom: 1px solid var(--line);">
+                <div class="row-main" style="flex: 1; min-width: 0;">
+                  <span class="subject subject-${idea.subjectId}">${getSubject(idea.subjectId)?.title || idea.subjectId}</span>
+                  <strong>${idea.title}</strong>
+                  <small style="color: var(--soft);">${idea.reason} \xB7 ${idea.minutes} min</small>
+                </div>
+                <button type="button" class="tool" data-action="add-idea-task" data-chapter-id="${idea.chapterId}" data-subject-id="${idea.subjectId}" title="Add to today's plan">
+                  ${icon("plus")}
+                </button>
+              </article>
+            `).join("") : `
+              <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+                No study suggestions found. Update your syllabus topic statuses to receive tailored activities.
+              </div>
+            `}
+          </div>
+        </section>
       </div>
     </div>
   `;
 }
 
 // src/ui/academics-view.ts
-function renderAcademicsView(state, activeSubjectId = "physics") {
-  const todayStr = getIsoDate();
+function renderAcademicsView(state, activeSubjectId = "physics", selectedChapterId) {
   const currentSubject = getSubject(activeSubjectId) || CBSE_SUBJECTS[0];
   const chapters = CBSE_CHAPTERS.filter((c) => c.subjectId === currentSubject.id);
+  const activeChapter = chapters.find((c) => c.id === selectedChapterId) || chapters[0];
   const progress = computeAcademicProgress(state);
-  const subStats = progress.subjectStats[currentSubject.id];
-  const examDaysAway = daysDifference(todayStr, currentSubject.examDate);
+  const activeChapProgress = state.chapterProgress[activeChapter.id];
+  const activeStatus = activeChapProgress?.status || "Not started";
   return `
-    <div class="page-container academics-page">
-      <header class="academics-header liquid-glass-panel">
+    <div class="page academics-page">
+      <div class="section-head intro">
         <div>
-          <span class="eyebrow-text">OFFICIAL CBSE CLASS XII 2026-27</span>
-          <h1 class="page-title">Academics & Syllabus</h1>
-          <p class="page-subtitle">Track your learning status topic by topic. Unmarked means unknown until you set it.</p>
+          <p class="eyebrow">CBSE CLASS XII \xB7 2026\u201327</p>
+          <h1>Your academic world</h1>
+          <p class="muted">Choose a chapter to see its verified scope and recorded learning.</p>
         </div>
+      </div>
 
-        <!-- 5 Subject Tab Pills -->
-        <nav class="subject-tabs-nav" aria-label="Subjects">
-          ${CBSE_SUBJECTS.map((s) => `
-            <button type="button" class="subject-nav-pill ${s.id === currentSubject.id ? "active" : ""}" data-action="switch-subject" data-subject-id="${s.id}">
-              <span class="sub-pill-code">${s.code}</span>
-              <span class="sub-pill-title">${s.title}</span>
-            </button>
-          `).join("")}
-        </nav>
-      </header>
+      <div class="subject-tabs" aria-label="Subjects">
+        ${CBSE_SUBJECTS.map((s) => `
+          <button type="button" class="button outline" data-action="switch-subject" data-subject-id="${s.id}" aria-pressed="${currentSubject.id === s.id}">
+            ${s.title}
+          </button>
+        `).join("")}
+      </div>
 
-      <!-- Subject Overview Card -->
-      <section class="subject-meta-card liquid-glass-panel">
-        <div class="sub-meta-top">
-          <div>
-            <span class="subject-tag subject-${currentSubject.id}">CBSE ${currentSubject.code} \xB7 ${currentSubject.title}</span>
-            <h2 class="sub-headline">${currentSubject.title} Board Examination</h2>
-            <p class="sub-exam-details">
-              ${new Intl.DateTimeFormat("en-GB", { dateStyle: "full" }).format(/* @__PURE__ */ new Date(currentSubject.examDate + "T12:00:00Z"))} \xB7 ${currentSubject.examTime}
+      <div class="academic-two-column">
+        <aside class="academic-chapters">
+          <div class="section-head">
+            <div>
+              <h2>${currentSubject.title}</h2>
+              <p class="muted">${chapters.length} syllabus chapters</p>
+            </div>
+          </div>
+          ${chapters.map((c) => {
+    const p = state.chapterProgress[c.id];
+    const isMarked = p && p.status !== "Not started";
+    return `
+              <button type="button" class="academic-chapter ${c.id === activeChapter.id ? "selected" : ""}" data-action="select-chapter" data-chapter-id="${c.id}">
+                <strong>${c.title}</strong>
+                <small>${c.unitGroup} \xB7 ${isMarked ? p.status : "Unmarked"}</small>
+              </button>
+            `;
+  }).join("")}
+        </aside>
+
+        <div class="academic-chapter-content">
+          <section class="academic-hierarchy">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">${activeChapter.unitGroup}</p>
+                <h2>${activeChapter.title}</h2>
+                <p class="muted">${activeChapter.ncertRef} \xB7 ${currentSubject.title}</p>
+              </div>
+              <span class="verification-badge" style="display:inline-flex; align-items:center; gap:6px; background:var(--sage); color:var(--green); border-radius:99px; padding:6px 12px; font-size:11px; font-weight:700;">
+                ${icon("check")} CBSE 2026\u201327 verified
+              </span>
+            </div>
+
+            <!-- Chapter Status Picker -->
+            <div style="background:#fff8; border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin: 16px 0 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <strong style="font-size:14px; display:block;">Your Chapter Status</strong>
+                <small style="color:var(--soft);">Unmarked means unknown until you set it.</small>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select class="status-select" data-action="update-chapter-status" data-chapter-id="${activeChapter.id}" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 12px; font-size:13px; background:var(--white);">
+                  <option value="Not started" ${activeStatus === "Not started" ? "selected" : ""}>Not started</option>
+                  <option value="Learning" ${activeStatus === "Learning" ? "selected" : ""}>Learning</option>
+                  <option value="Learned" ${activeStatus === "Learned" ? "selected" : ""}>Learned</option>
+                  <option value="Practising" ${activeStatus === "Practising" ? "selected" : ""}>Practising</option>
+                  <option value="Needs revision" ${activeStatus === "Needs revision" ? "selected" : ""}>Needs revision</option>
+                  <option value="Exam ready" ${activeStatus === "Exam ready" ? "selected" : ""}>Exam ready</option>
+                </select>
+                ${activeChapProgress?.rating ? `
+                  <span class="status marked">${activeChapProgress.rating}</span>
+                ` : ""}
+              </div>
+            </div>
+
+            <p class="academic-note" style="color:var(--soft); font-size:12px; line-height:1.6; margin: 0 0 20px;">
+              Topic titles and core concepts below come from the current Class XII ${currentSubject.title} syllabus.
             </p>
-          </div>
-          <div class="sub-countdown-box glass-subcard">
-            <strong class="countdown-days">${examDaysAway > 0 ? examDaysAway : 0}</strong>
-            <span>days until board paper</span>
-          </div>
+
+            <div class="topic-list">
+              ${activeChapter.topics.map((topic) => {
+    const learnAct = buildActionableActivity(topic, activeChapter, "learning");
+    const practiceAct = buildActionableActivity(topic, activeChapter, "practice");
+    return `
+                  <article class="topic-card" data-topic-id="${topic.id}">
+                    <div class="topic-card-head">
+                      <div>
+                        <p class="eyebrow">VERIFIED TOPIC</p>
+                        <h3 style="font-size: 18px; margin: 4px 0;">${topic.title}</h3>
+                      </div>
+                      <span class="status marked">${topic.ncertRef}</span>
+                    </div>
+
+                    <div style="margin: 10px 0; font-size: 13px; color: var(--soft); line-height: 1.6;">
+                      <strong>Core Principles:</strong> ${topic.coreConcepts.join(" \xB7 ")}
+                      ${topic.keyDerivations?.length ? `<br><strong>Key Derivations:</strong> ${topic.keyDerivations.join(", ")}` : ""}
+                      ${topic.keyFormulas?.length ? `<br><strong>Key Formulas:</strong> ${topic.keyFormulas.join(", ")}` : ""}
+                    </div>
+
+                    <div class="next-activity-card" style="margin-top: 14px;">
+                      <div>
+                        <p class="eyebrow">NEXT ACTIVITY \xB7 CONCEPT LEARNING</p>
+                        <h4>${learnAct.title}</h4>
+                        <p>${learnAct.learningObjective}</p>
+                        <small>${learnAct.expectedMinutes} min \xB7 Verified NCERT Activity</small>
+                      </div>
+                      <button type="button" class="button primary" data-action="launch-topic-activity" data-topic-id="${topic.id}" data-chapter-id="${activeChapter.id}" data-mode="learning">
+                        ${icon("play")} Learn Concepts
+                      </button>
+                    </div>
+
+                    <div class="next-activity-card" style="margin-top: 10px; background: linear-gradient(135deg, #eaf2eb9c, #fff9 75%); border-color: #49634f35;">
+                      <div>
+                        <p class="eyebrow" style="color: var(--green);">PRACTICE & NUMERICALS</p>
+                        <h4>${practiceAct.title}</h4>
+                        <p>${practiceAct.learningObjective}</p>
+                        <small>${practiceAct.expectedMinutes} min \xB7 Board-Pattern Questions</small>
+                      </div>
+                      <button type="button" class="button outline" data-action="launch-topic-activity" data-topic-id="${topic.id}" data-chapter-id="${activeChapter.id}" data-mode="practice">
+                        ${icon("play")} Practice Questions
+                      </button>
+                    </div>
+                  </article>
+                `;
+  }).join("")}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// src/ui/tests-view.ts
+function renderTestsView(state) {
+  const todayStr = getIsoDate();
+  const sortedSchoolTests = [...state.tests].sort((a, b) => a.day.localeCompare(b.day));
+  return `
+    <div class="page tests-page">
+      <div class="section-head intro">
+        <div>
+          <p class="eyebrow">DATES & COVERAGE</p>
+          <h1>Tests</h1>
+        </div>
+        <button type="button" class="button outline" data-action="open-add-test-modal">
+          ${icon("plus")} Add test
+        </button>
+      </div>
+
+      <section class="import-banner" style="background:#f2e4e9; border: 1px solid var(--line); border-radius:14px; padding:24px 28px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <p class="eyebrow">YOUR SCHOOL PLANNER</p>
+          <h2 style="font-size:24px; margin:4px 0;">Record your upcoming school tests</h2>
+          <p style="color:var(--soft); font-size:13px;">Add your pre-board or unit test dates and chapters to prioritize study recommendations.</p>
+        </div>
+        <button type="button" class="button primary" data-action="open-add-test-modal">
+          ${icon("plus")} Add school test
+        </button>
+      </section>
+
+      <section style="margin-bottom: 36px;">
+        <div class="section-head">
+          <h2>School tests</h2>
+          <span class="muted">${sortedSchoolTests.length} recorded</span>
         </div>
 
-        <div class="sub-meta-details-row">
-          <span><strong>Assessment Structure:</strong> ${currentSubject.theoryMarks} Theory + ${currentSubject.internalMarks} Practical / Internal</span>
-          <span><strong>Learned:</strong> ${subStats.learned} of ${subStats.total} chapters (${subStats.percent}%)</span>
-        </div>
-
-        <div class="sub-official-note glass-subcard">
-          <span class="note-icon">${icon("shield-check", 16)}</span>
-          <p>${currentSubject.officialNote} <a href="${currentSubject.syllabusUrl}" target="_blank" rel="noopener" class="official-link">Official CBSE Syllabus PDF ${icon("external-link", 12)}</a></p>
+        <div class="rows">
+          ${sortedSchoolTests.length > 0 ? sortedSchoolTests.map((test) => {
+    const daysAway = daysDifference(todayStr, test.day);
+    const sub = getSubject(test.subjectId);
+    return `
+              <article class="test-row">
+                <div class="row-main">
+                  <span class="subject subject-${test.subjectId}">${sub?.title || test.subjectId}</span>
+                  <strong>${test.title}</strong>
+                  <small>${test.coverageChapterIds?.length || 0} confirmed chapters \xB7 ${daysAway >= 0 ? `${daysAway} days away` : "Completed"}</small>
+                </div>
+                <span class="row-time">${test.day}</span>
+                <button type="button" class="tool" data-action="delete-test" data-test-id="${test.id}" title="Delete test">
+                  ${icon("trash")}
+                </button>
+              </article>
+            `;
+  }).join("") : `
+            <div class="empty-line" style="padding: 24px; text-align: center; color: var(--soft);">
+              No upcoming school tests added. Add one above to tailor your study plan.
+            </div>
+          `}
         </div>
       </section>
 
-      <!-- Chapters & Topics List -->
-      <section class="chapters-accordion-section">
-        <h3 class="section-title">Course Units & Chapters</h3>
+      <section class="board-list">
+        <div class="section-head">
+          <div>
+            <h2>Official Board Examinations</h2>
+            <p>CBSE Class XII \xB7 2027 \xB7 10:30 am\u20131:30 pm IST</p>
+          </div>
+          <a class="button outline" href="https://www.cbse.gov.in" target="_blank" rel="noreferrer">
+            Official dates ${icon("arrow-up-right")}
+          </a>
+        </div>
 
-        <div class="chapters-stack">
-          ${chapters.map((chap) => {
-    const p = state.chapterProgress[chap.id];
-    const status = p?.status || "Not started";
-    const rating = p?.rating;
+        <div class="rows">
+          ${CBSE_SUBJECTS.map((subject) => {
+    const daysAway = daysDifference(todayStr, subject.examDate);
+    const dateStr = new Intl.DateTimeFormat("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }).format(/* @__PURE__ */ new Date(subject.examDate + "T10:30:00Z"));
     return `
-              <article class="chapter-card liquid-glass-panel" data-chapter-id="${chap.id}">
-                <div class="chapter-header-row">
-                  <div class="chapter-info">
-                    <span class="unit-group-pill">${chap.unitGroup}</span>
-                    <h4 class="chapter-title">${chap.title}</h4>
-                    <span class="ncert-text">${chap.ncertRef}</span>
-                  </div>
-
-                  <div class="chapter-status-controls">
-                    <div class="select-wrapper">
-                      <label class="sr-only" for="status-${chap.id}">Status for ${chap.title}</label>
-                      <select id="status-${chap.id}" class="glass-select status-select" data-action="update-chapter-status" data-chapter-id="${chap.id}">
-                        <option value="Not started" ${status === "Not started" ? "selected" : ""}>Not started</option>
-                        <option value="Learning" ${status === "Learning" ? "selected" : ""}>Learning</option>
-                        <option value="Learned" ${status === "Learned" ? "selected" : ""}>Learned</option>
-                        <option value="Practising" ${status === "Practising" ? "selected" : ""}>Practising</option>
-                        <option value="Needs revision" ${status === "Needs revision" ? "selected" : ""}>Needs revision</option>
-                        <option value="Exam ready" ${status === "Exam ready" ? "selected" : ""}>Exam ready</option>
-                      </select>
-                    </div>
-
-                    <div class="select-wrapper">
-                      <label class="sr-only" for="rating-${chap.id}">Clarity for ${chap.title}</label>
-                      <select id="rating-${chap.id}" class="glass-select rating-select" data-action="update-chapter-rating" data-chapter-id="${chap.id}">
-                        <option value="" ${!rating ? "selected" : ""}>No Rating</option>
-                        <option value="Difficult" ${rating === "Difficult" ? "selected" : ""}>Difficult</option>
-                        <option value="Okay" ${rating === "Okay" ? "selected" : ""}>Okay</option>
-                        <option value="Easy" ${rating === "Easy" ? "selected" : ""}>Easy</option>
-                      </select>
-                    </div>
-                  </div>
+              <article class="test-row">
+                <div class="row-main">
+                  <strong>${subject.title}</strong>
+                  <small>Subject Code: ${subject.code} \xB7 ${subject.theoryMarks} Theory + ${subject.internalMarks} Internal</small>
                 </div>
-
-                <!-- Topics list under this chapter -->
-                <div class="topics-container">
-                  <span class="topics-heading">Prescribed Topics & Learning Activities:</span>
-                  <div class="topics-grid">
-                    ${chap.topics.map((top) => `
-                      <div class="topic-subcard glass-subcard">
-                        <div class="topic-header">
-                          <h5 class="topic-title">${top.title}</h5>
-                          <span class="topic-ref">${top.ncertRef}</span>
-                        </div>
-
-                        <ul class="core-concepts-pills">
-                          ${top.coreConcepts.map((c) => `<li>${c}</li>`).join("")}
-                        </ul>
-
-                        <div class="topic-actions-row">
-                          <button type="button" class="btn quiet btn-sm" data-action="launch-topic-activity" data-chapter-id="${chap.id}" data-topic-id="${top.id}" data-mode="learning">
-                            ${icon("book-open", 14)} Learn
-                          </button>
-                          <button type="button" class="btn quiet btn-sm" data-action="launch-topic-activity" data-chapter-id="${chap.id}" data-topic-id="${top.id}" data-mode="practice">
-                            ${icon("clipboard-check", 14)} Practice Questions
-                          </button>
-                        </div>
-                      </div>
-                    `).join("")}
-                  </div>
+                <div style="text-align: right;">
+                  <span class="row-time" style="font-weight: 600; color: var(--ink);">${dateStr}</span>
+                  <small style="display: block; color: var(--green); font-size: 11px;">${daysAway > 0 ? `${daysAway} days away` : "Today"}</small>
                 </div>
               </article>
             `;
@@ -1554,308 +1629,143 @@ function renderAcademicsView(state, activeSubjectId = "physics") {
   `;
 }
 
-// src/ui/tests-view.ts
-function renderTestsView(state) {
-  const todayStr = getIsoDate();
-  const schoolTests = state.tests;
-  return `
-    <div class="page-container tests-page">
-      <header class="tests-header liquid-glass-panel">
-        <div>
-          <span class="eyebrow-text">DATES & TEST READINESS</span>
-          <h1 class="page-title">Tests & Examinations</h1>
-          <p class="page-subtitle">Confirmed official board dates and your personal school test schedule.</p>
-        </div>
-        <button type="button" class="btn primary" data-action="open-add-test-modal">
-          ${icon("plus", 16)} Add School Test
-        </button>
-      </header>
-
-      <!-- Official Board Examination Date Sheet -->
-      <section class="board-dates-section liquid-glass-panel">
-        <div class="panel-head">
-          <div>
-            <h2 class="panel-title">${icon("shield-check", 18)} Verified 2027 Main Board Date Sheet</h2>
-            <p class="panel-subtitle">Official CBSE Date Sheet Circular (06 November 2026) \xB7 10:30 AM \u2013 1:30 PM IST</p>
-          </div>
-        </div>
-
-        <div class="board-dates-table-wrapper">
-          <table class="glass-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Code</th>
-                <th>Official Date</th>
-                <th>Countdown</th>
-                <th>Structure</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${CBSE_SUBJECTS.map((s) => {
-    const diff = daysDifference(todayStr, s.examDate);
-    return `
-                  <tr>
-                    <td><strong>${s.title}</strong></td>
-                    <td><code>${s.code}</code></td>
-                    <td>${new Intl.DateTimeFormat("en-GB", { dateStyle: "full" }).format(/* @__PURE__ */ new Date(s.examDate + "T12:00:00Z"))}</td>
-                    <td><span class="badge ${diff <= 30 ? "badge-urgent" : "badge-normal"}">${diff > 0 ? `${diff} days` : diff === 0 ? "Today" : "Completed"}</span></td>
-                    <td>${s.theoryMarks} Th + ${s.internalMarks} Pr/IA</td>
-                  </tr>
-                `;
-  }).join("")}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- School Tests Section -->
-      <section class="school-tests-section liquid-glass-panel">
-        <div class="panel-head">
-          <div>
-            <h2 class="panel-title">Your Confirmed School Tests (${schoolTests.length})</h2>
-            <p class="panel-subtitle">Entered manually or confirmed from school planner. BLOOM never invents test coverage.</p>
-          </div>
-        </div>
-
-        ${schoolTests.length ? `
-          <div class="school-tests-grid">
-            ${schoolTests.map((test) => {
-    const sub = getSubject(test.subjectId);
-    const daysLeft = daysDifference(todayStr, test.day);
-    const coverageChapters = test.coverageChapterIds.map((id) => getChapter(id)?.title).filter(Boolean);
-    return `
-                <div class="test-card liquid-glass-subcard">
-                  <div class="test-card-top">
-                    <span class="subject-tag subject-${test.subjectId}">${sub?.title || test.subjectId}</span>
-                    <span class="test-date-badge">${test.day} (${daysLeft >= 0 ? `${daysLeft}d away` : "Past"})</span>
-                  </div>
-
-                  <h3 class="test-name">${test.title}</h3>
-
-                  <div class="test-coverage-info">
-                    <strong>Included Syllabus (${coverageChapters.length} chapters):</strong>
-                    <p class="coverage-list">${coverageChapters.join(", ") || "General syllabus"}</p>
-                  </div>
-
-                  ${test.scoredMarks !== void 0 ? `
-                    <div class="score-display-box glass-subcard">
-                      <span>Recorded Score:</span>
-                      <strong>${test.scoredMarks} / ${test.maxMarks}</strong>
-                      <small>(${Math.round(test.scoredMarks / test.maxMarks * 100)}%)</small>
-                    </div>
-                  ` : `
-                    <button type="button" class="btn secondary btn-sm" data-action="open-enter-score-modal" data-test-id="${test.id}">
-                      ${icon("edit", 14)} Enter Test Score
-                    </button>
-                  `}
-                </div>
-              `;
-  }).join("")}
-          </div>
-        ` : `
-          <div class="empty-state-card">
-            <p class="empty-text">No upcoming school tests added yet.</p>
-            <button type="button" class="btn secondary" data-action="open-add-test-modal">
-              ${icon("plus", 16)} Add your next school test
-            </button>
-          </div>
-        `}
-      </section>
-    </div>
-  `;
-}
-
 // src/ui/tools-view.ts
 function renderToolsView(state) {
   const mistakes = state.mistakes;
   const garden = state.garden;
+  const learner = state.profile;
   return `
-    <div class="page-container tools-page">
-      <header class="tools-header liquid-glass-panel">
+    <div class="page tools-page">
+      <div class="section-head intro">
         <div>
-          <span class="eyebrow-text">PERSONAL STUDY VAULT & TOOLS</span>
-          <h1 class="page-title">Your Space</h1>
-          <p class="page-subtitle">Mistake Journal, tranquil garden growth, practicals, and private settings.</p>
+          <p class="eyebrow">PERSONAL STUDY SPACE & VAULT</p>
+          <h1>Your Space</h1>
+          <p class="muted">All your study tools, mistake journal, and privacy controls in one place.</p>
         </div>
-      </header>
+      </div>
 
-      <!-- Grid of Tools -->
-      <div class="tools-grid">
-        <!-- Mistake Journal Card -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
+      <section class="profile-top" style="display:flex; align-items:center; gap:16px; margin-bottom:28px; padding:20px; background:#fff8; border-radius:14px; border:1px solid var(--line);">
+        <span class="avatar" style="width:64px; height:64px; font-size:24px; border-radius:50%; display:grid; place-items:center; background:var(--blush); color:var(--rose-dark); font-weight:700;">
+          ${learner.name[0] || "A"}
+        </span>
+        <div style="flex:1;">
+          <h2 style="font-size:24px; margin:0;">${learner.name}</h2>
+          <p class="muted" style="margin:2px 0 0; font-size:13px;">CBSE Class XII \xB7 2027 \xB7 Private Local Vault</p>
+        </div>
+        <button type="button" class="button outline" data-action="open-onboarding" title="Update settings">
+          ${icon("pencil")} Routine & Settings
+        </button>
+      </section>
+
+      <div class="planner-grid" style="grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Mistake Journal -->
+        <section style="background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px;">
+          <div class="section-head">
             <div>
-              <h2 class="panel-title">${icon("alert-circle", 18)} Mistake Journal (${mistakes.length})</h2>
-              <p class="panel-subtitle">Turn errors into mastery. Scheduled retry activities target root causes.</p>
+              <h2>Mistake Journal</h2>
+              <p class="muted">${mistakes.length} error logs \xB7 scheduled retry for root causes</p>
             </div>
-            <button type="button" class="btn secondary btn-sm" data-action="open-new-mistake-modal">
-              ${icon("plus", 14)} Add Entry
+            <button type="button" class="button outline" data-action="open-new-mistake-modal">
+              ${icon("plus")} Log mistake
             </button>
           </div>
 
-          ${mistakes.length ? `
-            <div class="mistakes-stack">
-              ${mistakes.map((m) => {
+          <div class="rows">
+            ${mistakes.length > 0 ? mistakes.map((m) => {
     const sub = getSubject(m.subjectId);
-    const chap = getChapter(m.chapterId);
     return `
-                  <div class="mistake-item glass-subcard ${m.resolved ? "mistake-resolved" : ""}">
-                    <div class="mistake-item-top">
-                      <span class="subject-tag subject-${m.subjectId}">${sub?.title || m.subjectId}</span>
-                      <span class="root-cause-badge cause-${m.rootCause}">${m.rootCause.replace("_", " ")}</span>
-                      <span class="mistake-date">${m.date}</span>
-                    </div>
-
-                    <h4 class="mistake-question">${m.questionDesc}</h4>
-                    <p class="mistake-chap-label">${chap?.title || ""}</p>
-
-                    <div class="mistake-notes-block">
-                      <p><strong>What went wrong:</strong> ${m.studentNotes}</p>
-                      ${m.correctApproach ? `<p><strong>Key lesson / correction:</strong> ${m.correctApproach}</p>` : ""}
-                    </div>
-
-                    <div class="mistake-actions">
-                      ${!m.resolved ? `
-                        <button type="button" class="btn primary btn-sm" data-action="schedule-mistake-retry" data-mistake-id="${m.id}">
-                          ${icon("rotate-ccw", 14)} Schedule Retry Session
-                        </button>
-                        <button type="button" class="btn quiet btn-sm" data-action="toggle-mistake-resolved" data-mistake-id="${m.id}">
-                          Mark Resolved
-                        </button>
-                      ` : `
-                        <span class="resolved-badge">${icon("check", 14)} Mastered</span>
-                      `}
-                    </div>
+                <article class="task-row ${m.resolved ? "done" : ""}">
+                  <div class="row-main">
+                    <span class="subject subject-${m.subjectId}">${sub?.title || m.subjectId}</span>
+                    <strong>${m.questionDesc}</strong>
+                    <small>Cause: ${m.rootCause.replace("_", " ")} \xB7 ${m.studentNotes}</small>
                   </div>
-                `;
-  }).join("")}
-            </div>
-          ` : `
-            <div class="empty-state-card">
-              <p class="empty-text">No mistakes logged yet. When you hit a stumbling block in numericals or questions, log it here to automatically schedule a retry.</p>
-              <button type="button" class="btn secondary btn-sm" data-action="open-new-mistake-modal">
-                ${icon("plus", 14)} Log your first mistake note
-              </button>
-            </div>
-          `}
-        </section>
-
-        <!-- Bloom Garden Card -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon("flower", 18)} Bloom Garden</h2>
-              <p class="panel-subtitle">Calm reflection on your real focus. Never withers or penalizes missed days.</p>
-            </div>
-          </div>
-
-          <div class="garden-stage-display glass-subcard">
-            <div class="garden-plant-visual">
-              <div class="botanical-bloom-icon" aria-hidden="true">\u{1F338}</div>
-            </div>
-            <div class="garden-status-text">
-              <h3 class="plant-name">${garden.plantType} \xB7 Level ${garden.level}</h3>
-              <p class="plant-quote">"True understanding grows with steady, calm steps."</p>
-              <div class="growth-metric">
-                <span>Growth Points: <strong>${garden.growthPoints}</strong> (earned through saved focus sessions)</span>
-                <span>Blooms Achieved: <strong>${garden.bloomsEarned}</strong></span>
+                  <div style="display:flex; gap:6px;">
+                    ${!m.resolved ? `
+                      <button type="button" class="button quiet" data-action="schedule-mistake-retry" data-mistake-id="${m.id}" title="Schedule retry">
+                        ${icon("rotate-ccw")}
+                      </button>
+                    ` : `
+                      <span class="status marked">${icon("check")} Mastered</span>
+                    `}
+                  </div>
+                </article>
+              `;
+  }).join("") : `
+              <div class="empty-line" style="padding:20px; text-align:center; color:var(--soft);">
+                No mistakes logged yet. When you get stuck on a question or numerical, log it here to automatically schedule a spaced retry.
               </div>
-            </div>
-          </div>
-
-          <p class="provenance-disclaimer">
-            Garden progress is built on genuine focus sessions recorded by you. If you take a rest day, your garden calmly waits for your return.
-          </p>
-        </section>
-
-        <!-- Practicals & Project Tracker -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon("clipboard-check", 18)} CBSE Practicals & Internal Assessment</h2>
-              <p class="panel-subtitle">Official 30-mark (Science/PE) and 20-mark (Math/English) guidelines.</p>
-            </div>
-          </div>
-
-          <div class="practicals-list">
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Physics (042) \u2014 30 Marks Practical</strong>
-                <p>Two experiments (one from each section: 7+7), practical record file (5), one activity from each section (3+3), viva voce (5).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Chemistry (043) \u2014 30 Marks Practical</strong>
-                <p>Volumetric analysis (8), Salt analysis (8), Content based experiment (6), Project work (4), Class record and viva (4).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Physical Education (048) \u2014 30 Marks Practical</strong>
-                <p>Physical fitness test (6), Proficiency in games/sports (7), Yogic practices (7), Record file (5), Viva voce (5).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>English Core (301) \u2014 20 Marks Assessment</strong>
-                <p>Listening test (5), Speaking skills presentation (5), Project file & viva (10).</p>
-              </div>
-            </div>
-
-            <div class="practical-row glass-subcard">
-              <div>
-                <strong>Mathematics (041) \u2014 20 Marks Internal Assessment</strong>
-                <p>Periodic tests best 2 out of 3 (10), Mathematics activities record file & viva (10).</p>
-              </div>
-            </div>
+            `}
           </div>
         </section>
 
-        <!-- Security, Privacy & App Settings -->
-        <section class="tool-section-card liquid-glass-panel">
-          <div class="panel-head">
-            <div>
-              <h2 class="panel-title">${icon("lock", 18)} Privacy & Vault Protection</h2>
-              <p class="panel-subtitle">Aastha alone holds data access. Zero cloud surveillance.</p>
+        <!-- Bloom Garden -->
+        <section style="background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div class="section-head">
+              <div>
+                <h2>Bloom Garden</h2>
+                <p class="muted">Reflects your genuine study focus. Never withers.</p>
+              </div>
+            </div>
+
+            <div style="text-align:center; padding:30px 10px;">
+              <div style="font-size:64px; margin-bottom:12px;">\u{1F338}</div>
+              <h3 style="font-size:20px; margin:0 0 6px;">${garden.plantType} \xB7 Level ${garden.level}</h3>
+              <p class="muted" style="font-size:13px; font-style:italic;">"True understanding grows with steady, calm steps."</p>
+              <div style="margin-top:16px; display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:var(--sage); color:var(--green); border-radius:99px; font-size:12px; font-weight:600;">
+                ${garden.growthPoints} growth points \xB7 ${garden.bloomsEarned} blooms earned
+              </div>
             </div>
           </div>
 
-          <div class="settings-stack">
-            <div class="setting-row">
-              <div>
-                <strong>Local Vault Encryption (AES-GCM 256-bit)</strong>
-                <p>Optionally seal your private records with a passphrase so no one on this device can read them without it.</p>
-              </div>
-              <button type="button" class="btn secondary btn-sm" data-action="open-vault-modal">
-                ${state.vaultPassphraseSet ? icon("unlock", 14) + " Change Passphrase" : icon("lock", 14) + " Enable Passphrase"}
-              </button>
-            </div>
-
-            <div class="setting-row">
-              <div>
-                <strong>Encrypted JSON Data Backup</strong>
-                <p>Download a complete, offline encrypted copy of your preparation profile and records.</p>
-              </div>
-              <button type="button" class="btn secondary btn-sm" data-action="export-vault-backup">
-                Download Backup
-              </button>
-            </div>
-
-            <div class="setting-row">
-              <div>
-                <strong>Reduced Motion</strong>
-                <p>Minimize UI spring animations and transitions for calmer navigation.</p>
-              </div>
-              <input type="checkbox" class="toggle-switch" data-action="toggle-reduced-motion" ${state.reduceMotion ? "checked" : ""}>
-            </div>
+          <div style="border-top:1px solid var(--line); padding-top:16px; font-size:12px; color:var(--soft);">
+            Flowers bloom when focus sessions are completed and rated honestly.
           </div>
         </section>
       </div>
+
+      <!-- Privacy & Vault Section -->
+      <section style="margin-top:28px; background:#fff8; border-radius:14px; border:1px solid var(--line); padding:24px;">
+        <div class="section-head">
+          <div>
+            <h2>Privacy & Vault Security</h2>
+            <p class="muted">Aastha is the sole student. Zero third-party cloud trackers. AES-256-GCM encrypted local storage.</p>
+          </div>
+          <span style="display:inline-flex; align-items:center; gap:6px; color:var(--green); font-size:12px; font-weight:700;">
+            ${icon("shield-check")} AES-256 Encrypted
+          </span>
+        </div>
+
+        <div class="rows">
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);">
+            <div>
+              <strong>Encryption Status</strong>
+              <small style="display:block; color:var(--soft);">Web Crypto PBKDF2 (250,000 iterations) + AES-GCM-256</small>
+            </div>
+            <span class="status marked">Secured</span>
+          </div>
+
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);">
+            <div>
+              <strong>Target Examination</strong>
+              <small style="display:block; color:var(--soft);">Exclusively CBSE Class XII 2027 (No JEE, No external syllabi)</small>
+            </div>
+            <span class="status marked">CBSE XII Only</span>
+          </div>
+
+          <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0;">
+            <div>
+              <strong>Local Backup & Reset</strong>
+              <small style="display:block; color:var(--soft);">Export your study record or reset to clean state.</small>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="button outline" data-action="export-state">Export JSON</button>
+              <button type="button" class="button quiet" data-action="reset-state" style="color:#923a43;">Reset Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   `;
 }
@@ -1871,117 +1781,123 @@ function renderStudyWorkspace(task, state) {
   ];
   const completedIndices = new Set(task.completedStepIndices || []);
   return `
-    <div class="workspace-backdrop" data-workspace-id="${task.id}">
-      <div class="workspace-panel liquid-glass-panel">
-        <header class="workspace-header">
-          <div class="workspace-meta">
-            <span class="subject-tag subject-${task.subjectId}">${subject?.title || task.subjectId}</span>
-            <span class="activity-type-badge">${task.activityType.replace("_", " ")}</span>
-            <span class="duration-badge">${icon("timer", 14)} ${task.minutes} min</span>
-          </div>
-          <button type="button" class="btn-icon close-workspace" data-action="close-workspace" aria-label="Close Study Workspace">
-            ${icon("x", 20)}
+    <div class="workspace-backdrop" data-workspace-id="${task.id}" style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+      <div class="activity-workspace" style="width:min(860px,100%); background:var(--paper); border:1px solid var(--line); border-radius:24px; box-shadow:0 24px 70px rgba(0,0,0,0.25); max-height:92vh; overflow-y:auto; padding:clamp(20px,3.5vw,36px);">
+        
+        <div class="activity-nav" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <button type="button" class="button quiet" data-action="close-workspace">
+            ${icon("arrow-left")} Close Workspace
           </button>
-        </header>
+          <span style="font-size:12px; font-weight:700; color:var(--rose-dark); letter-spacing:.08em;">
+            ${subject?.title || task.subjectId} \xB7 ${task.minutes} MIN
+          </span>
+        </div>
 
-        <div class="workspace-body">
-          <div class="workspace-main">
-            <h1 class="workspace-title">${task.title}</h1>
-            <p class="workspace-chapter">${chapter?.title || "Chapter Study"} \xB7 ${chapter?.unitGroup || ""}</p>
+        <div class="section-head intro" style="margin-bottom:20px;">
+          <div>
+            <p class="eyebrow">${subject?.title || task.subjectId} \xB7 ${chapter?.title || "CHAPTER"}</p>
+            <h1 style="font-size:32px; font-family:var(--display);">${task.title}</h1>
+            <p class="muted">${chapter?.unitGroup || ""} \xB7 ${chapter?.ncertRef || ""}</p>
+          </div>
+        </div>
 
-            ${task.recommendationReason ? `
-              <div class="why-card glass-subcard">
-                <span class="why-label">${icon("sparkles", 15)} Why this is next</span>
-                <p class="why-text">${task.recommendationReason}</p>
-              </div>
-            ` : ""}
+        <!-- Focus Timer Card -->
+        <div style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div>
+            <p class="eyebrow" style="margin:0 0 4px;">FOCUS SESSION</p>
+            <div id="workspace-timer-display" style="font-size:38px; font-family:var(--display); font-weight:700; color:var(--rose-dark); letter-spacing:1px;">
+              25:00
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="button primary" id="timer-start-pause" data-action="timer-toggle">
+              ${icon("play")} <span id="timer-btn-label">Start Focus</span>
+            </button>
+            <button type="button" class="button outline" data-action="timer-reset">
+              ${icon("rotate-ccw")} Reset
+            </button>
+          </div>
+        </div>
 
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon("bookmark", 16)} Learning Objective</h2>
-              <div class="objective-card glass-subcard">
-                <p>${task.learningObjective || "Master core concepts and verify independent understanding through practice."}</p>
-              </div>
-            </section>
+        <!-- Learning Objective -->
+        <div class="activity-reason" style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px;">
+          <strong style="display:block; font-size:15px; margin-bottom:6px;">Your learning objective</strong>
+          <p style="margin:0; font-size:14px; line-height:1.6; color:var(--ink);">${task.learningObjective || "Master core concepts and verify independent understanding through practice."}</p>
+          ${task.recommendationReason ? `<p class="muted" style="font-size:12px; margin-top:8px;">${task.recommendationReason}</p>` : ""}
+        </div>
 
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon("clipboard-check", 16)} Actionable Steps (${completedIndices.size}/${steps.length})</h2>
-              <div class="steps-list">
-                ${steps.map((step, idx) => {
+        <!-- Step-by-step checklist -->
+        <section class="activity-steps" style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px;">
+          <div class="section-head" style="margin-bottom:14px;">
+            <div>
+              <p class="eyebrow">STEP-BY-STEP CHECKLIST</p>
+              <h2 style="font-size:20px;">What to do</h2>
+            </div>
+            <small style="color:var(--soft); font-size:11px;">Complete each step before reflection</small>
+          </div>
+
+          <div style="display:grid; gap:8px;">
+            ${steps.map((step, idx) => {
     const isDone = completedIndices.has(idx);
     return `
-                    <label class="step-item ${isDone ? "step-completed" : ""}">
-                      <input type="checkbox" class="step-checkbox" data-task-id="${task.id}" data-step-index="${idx}" ${isDone ? "checked" : ""}>
-                      <span class="step-number">${idx + 1}</span>
-                      <span class="step-text">${step}</span>
-                    </label>
-                  `;
-  }).join("")}
-              </div>
-            </section>
-
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon("book-open", 16)} Verified Sourced Resources</h2>
-              <div class="resources-list">
-                ${(task.resourceRefs && task.resourceRefs.length ? task.resourceRefs : [chapter?.ncertRef || "NCERT Class XII Text"]).map((ref) => `
-                  <div class="resource-card glass-subcard">
-                    <span class="resource-icon">${icon("shield-check", 16)}</span>
-                    <div class="resource-info">
-                      <strong>${ref}</strong>
-                      <span class="provenance-note">Official CBSE Syllabus Prescribed Reference</span>
-                    </div>
+                <label style="display:grid; grid-template-columns:22px 1fr; align-items:start; gap:12px; padding:12px; border-radius:10px; background:${isDone ? "var(--sage)" : "var(--white)"}; border:1px solid ${isDone ? "var(--green)" : "var(--line)"}; cursor:pointer;">
+                  <input type="checkbox" data-action="toggle-step" data-task-id="${task.id}" data-step-index="${idx}" ${isDone ? "checked" : ""} style="margin-top:3px; accent-color:var(--rose);">
+                  <div>
+                    <small style="display:block; color:var(--rose-dark); font-size:10px; font-weight:700;">STEP ${idx + 1}</small>
+                    <span style="font-size:13px; line-height:1.5; ${isDone ? "text-decoration:line-through; color:var(--green);" : ""}">${step}</span>
                   </div>
-                `).join("")}
-              </div>
-            </section>
-
-            <section class="workspace-section">
-              <h2 class="section-heading">${icon("alert-circle", 16)} Got Stuck or Found a Mistake?</h2>
-              <button type="button" class="btn secondary log-mistake-btn" data-action="open-mistake-drawer" data-task-id="${task.id}" data-chapter-id="${task.chapterId}">
-                ${icon("plus", 16)} Log Doubt / Mistake to Journal
-              </button>
-            </section>
+                </label>
+              `;
+  }).join("")}
           </div>
+        </section>
 
-          <aside class="workspace-sidebar">
-            <div class="focus-timer-card liquid-glass-card">
-              <h3 class="timer-card-title">${icon("timer", 18)} Focus Session</h3>
-              <div class="timer-display" id="workspace-timer-display">25:00</div>
-              <div class="timer-controls">
-                <button type="button" class="btn primary timer-btn" id="timer-start-pause" data-action="timer-toggle">
-                  ${icon("play", 16)} <span id="timer-btn-label">Start Focus</span>
-                </button>
-                <button type="button" class="btn quiet timer-btn-reset" data-action="timer-reset">
-                  ${icon("rotate-ccw", 16)}
-                </button>
-              </div>
-              <p class="timer-hint">Counts actual studied seconds. Saved upon task completion.</p>
-            </div>
-
-            <div class="completion-card liquid-glass-card">
-              <h3 class="completion-card-title">${icon("check", 18)} Mark Complete</h3>
-              <p class="completion-hint">How did this activity feel? Select your shared clarity rating to calibrate your next spaced review:</p>
-
-              <div class="rating-selector">
-                <button type="button" class="rating-btn rating-easy" data-action="complete-task" data-task-id="${task.id}" data-rating="Easy">
-                  <strong>Easy</strong>
-                  <span>Review in 7 days</span>
-                </button>
-                <button type="button" class="rating-btn rating-okay" data-action="complete-task" data-task-id="${task.id}" data-rating="Okay">
-                  <strong>Okay</strong>
-                  <span>Review in 3 days</span>
-                </button>
-                <button type="button" class="rating-btn rating-difficult" data-action="complete-task" data-task-id="${task.id}" data-rating="Difficult">
-                  <strong>Difficult</strong>
-                  <span>Review tomorrow</span>
-                </button>
-              </div>
-
-              <div class="evidence-box">
-                <small><strong>Completion evidence:</strong> ${task.completionEvidence || "Self-checked and rating logged."}</small>
-              </div>
-            </div>
-          </aside>
+        <!-- Doubt / Mistake Logger Drawer trigger -->
+        <div style="background:#fff8; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-size:14px; display:block;">Got stuck or made an error?</strong>
+            <p class="muted" style="margin:2px 0 0; font-size:12px;">Log it to your Mistake Journal to schedule a focused retry session.</p>
+          </div>
+          <button type="button" class="button outline" data-action="open-new-mistake-modal" data-task-id="${task.id}" data-chapter-id="${task.chapterId}">
+            ${icon("plus")} Log Doubt / Mistake
+          </button>
         </div>
+
+        <!-- Reflection / Understanding Rating -->
+        <fieldset class="activity-reflection" style="border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:24px; background:#fff8;">
+          <legend style="padding:0 8px; font-size:13px; font-weight:700; color:var(--ink);">How did this session feel?</legend>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Easy" style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center;">
+                \u{1F60A} Easy
+              </span>
+            </label>
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Okay" checked style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center; background:var(--blush); border-color:var(--rose);">
+                \u{1F610} Okay
+              </span>
+            </label>
+            <label style="flex:1; cursor:pointer;">
+              <input type="radio" name="reflection-rating" value="Difficult" style="position:absolute; opacity:0;">
+              <span class="button outline" style="width:100%; border-radius:10px; text-align:center;">
+                \u{1F914} Difficult
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Workspace Footer Actions -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--line); padding-top:20px;">
+          <button type="button" class="button outline" data-action="close-workspace">
+            Save and continue later
+          </button>
+          <button type="button" class="button primary" data-action="finish-workspace-task" data-task-id="${task.id}">
+            ${icon("check")} Complete this activity
+          </button>
+        </div>
+
       </div>
     </div>
   `;
@@ -2168,7 +2084,9 @@ var BloomApp = class {
   state = initialAppState();
   currentRoute = "today";
   activeSubjectId = "physics";
+  selectedChapterId = "phy-1";
   selectedPlannerDate = getIsoDate();
+  plannerMode = "list";
   activeWorkspaceTask = null;
   onboardingStep = 1;
   // Focus Timer State
@@ -2189,10 +2107,11 @@ var BloomApp = class {
   setupRoutes() {
     const handleHash = () => {
       const hash = window.location.hash.replace(/^#/, "") || "today";
-      const [route, param] = hash.split("/");
+      const [route, param, subParam] = hash.split("/");
       this.currentRoute = route || "today";
-      if (route === "academics" && param) {
-        this.activeSubjectId = param;
+      if (route === "academics") {
+        if (param) this.activeSubjectId = param;
+        if (subParam) this.selectedChapterId = subParam;
       }
       this.render();
     };
@@ -2211,55 +2130,79 @@ var BloomApp = class {
         contentHtml = renderTodayView(this.state);
         break;
       case "planner":
-        contentHtml = renderPlannerView(this.state, this.selectedPlannerDate);
+        contentHtml = renderPlannerView(this.state, this.selectedPlannerDate, this.plannerMode);
         break;
       case "academics":
-        contentHtml = renderAcademicsView(this.state, this.activeSubjectId);
+      case "syllabus":
+        contentHtml = renderAcademicsView(this.state, this.activeSubjectId, this.selectedChapterId);
         break;
       case "tests":
         contentHtml = renderTestsView(this.state);
         break;
       case "tools":
       case "more":
+      case "profile":
         contentHtml = renderToolsView(this.state);
         break;
       default:
         contentHtml = renderTodayView(this.state);
     }
-    const navHtml = `
-      <nav class="floating-glass-nav" aria-label="Main Navigation">
-        <div class="nav-capsule liquid-glass-panel">
-          <a href="#today" class="nav-item ${this.currentRoute === "today" ? "active" : ""}" data-nav="today">
-            ${icon("sun", 18)}
-            <span>Today</span>
-          </a>
-          <a href="#planner" class="nav-item ${this.currentRoute === "planner" ? "active" : ""}" data-nav="planner">
-            ${icon("calendar", 18)}
-            <span>Planner</span>
-          </a>
-          <a href="#academics" class="nav-item ${this.currentRoute === "academics" ? "active" : ""}" data-nav="academics">
-            ${icon("book-open", 18)}
-            <span>Academics</span>
-          </a>
-          <a href="#tests" class="nav-item ${this.currentRoute === "tests" ? "active" : ""}" data-nav="tests">
-            ${icon("clipboard-check", 18)}
-            <span>Tests</span>
-          </a>
-          <a href="#tools" class="nav-item ${this.currentRoute === "tools" || this.currentRoute === "more" ? "active" : ""}" data-nav="tools">
-            ${icon("flower", 18)}
-            <span>Your Space</span>
-          </a>
-        </div>
-      </nav>
-    `;
+    const learnerName = this.state.profile.name || "Aastha";
+    const todayDateFormatted = new Intl.DateTimeFormat("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    }).format(/* @__PURE__ */ new Date());
     appEl.innerHTML = `
-      <div class="app-layout">
-        ${navHtml}
-        <main class="main-content" id="main-content">
-          ${contentHtml}
-        </main>
-        <div id="modal-container"></div>
+      <div class="layout">
+        <aside class="sidebar" aria-label="Sidebar navigation">
+          <a href="#today" class="wordmark">
+            <img src="./art/mark.svg" alt="BLOOM emblem">
+            <span>BLOOM</span>
+          </a>
+          <p class="sidebar-label eyebrow">STUDY SPACE</p>
+          <nav aria-label="Main navigation">
+            <a href="#today" data-nav="today" ${this.currentRoute === "today" ? 'aria-current="page"' : ""}>
+              ${icon("sun")}
+              <span>Today</span>
+            </a>
+            <a href="#planner" data-nav="planner" ${this.currentRoute === "planner" ? 'aria-current="page"' : ""}>
+              ${icon("calendar")}
+              <span>Planner</span>
+            </a>
+            <a href="#academics" data-nav="academics" ${this.currentRoute === "academics" || this.currentRoute === "syllabus" ? 'aria-current="page"' : ""}>
+              ${icon("book-open")}
+              <span>Syllabus</span>
+            </a>
+            <a href="#tests" data-nav="tests" ${this.currentRoute === "tests" ? 'aria-current="page"' : ""}>
+              ${icon("clipboard-list")}
+              <span>Tests</span>
+            </a>
+            <a href="#tools" data-nav="tools" ${this.currentRoute === "tools" || this.currentRoute === "more" || this.currentRoute === "profile" ? 'aria-current="page"' : ""}>
+              ${icon("flower")}
+              <span>Your Space</span>
+            </a>
+          </nav>
+          <button type="button" class="profile-button" data-action="open-tools">
+            <span class="avatar">${learnerName[0] || "A"}</span>
+            <span>
+              <strong>${learnerName}</strong>
+              <small>CBSE XII \xB7 2027</small>
+            </span>
+          </button>
+        </aside>
+
+        <div class="workspace">
+          <header class="topbar">
+            <div>${todayDateFormatted}</div>
+            <div class="session">CBSE XII \xB7 2027</div>
+          </header>
+          <main class="page-content" id="content">
+            ${contentHtml}
+          </main>
+        </div>
       </div>
+      <div id="modal-container"></div>
     `;
     if (this.activeWorkspaceTask) {
       this.renderActiveWorkspace();
@@ -2305,7 +2248,18 @@ var BloomApp = class {
           const subId = target.getAttribute("data-subject-id");
           if (subId) {
             this.activeSubjectId = subId;
+            const chaps = CBSE_CHAPTERS.filter((c) => c.subjectId === subId);
+            if (chaps.length > 0) this.selectedChapterId = chaps[0].id;
             window.location.hash = `#academics/${subId}`;
+          }
+          break;
+        }
+        // Select Chapter in Academics
+        case "select-chapter": {
+          const chapId = target.getAttribute("data-chapter-id");
+          if (chapId) {
+            this.selectedChapterId = chapId;
+            this.render();
           }
           break;
         }
@@ -2314,6 +2268,15 @@ var BloomApp = class {
           const newDay = target.getAttribute("data-day");
           if (newDay) {
             this.selectedPlannerDate = newDay;
+            this.render();
+          }
+          break;
+        }
+        // Switch Planner Mode (Checklist / Timetable)
+        case "planner-mode": {
+          const mode = target.getAttribute("data-value");
+          if (mode) {
+            this.plannerMode = mode;
             this.render();
           }
           break;
@@ -2339,6 +2302,42 @@ var BloomApp = class {
           }
           break;
         }
+        // Launch Topic Activity directly from Academics
+        case "launch-topic-activity": {
+          const chapId = target.getAttribute("data-chapter-id") || "";
+          const topId = target.getAttribute("data-topic-id") || "";
+          const mode = target.getAttribute("data-mode") || "learning";
+          const chap = getChapter(chapId);
+          const top = chap?.topics.find((t) => t.id === topId);
+          if (chap && top) {
+            const act = buildActionableActivity(top, chap, mode);
+            const task = {
+              id: `direct-${Date.now()}`,
+              title: act.title,
+              day: getIsoDate(),
+              minutes: act.expectedMinutes,
+              subjectId: chap.subjectId,
+              chapterId: chap.id,
+              topicId: top.id,
+              activityType: act.activityType,
+              learningObjective: act.learningObjective,
+              steps: act.steps,
+              completedStepIndices: [],
+              resourceRefs: act.resourceRefs,
+              completionEvidence: act.completionEvidence,
+              recommendationReason: `Direct launch from Syllabus \xB7 ${mode} mode`,
+              priority: "Normal",
+              done: false,
+              origin: "student"
+            };
+            this.state.tasks.push(task);
+            this.activeWorkspaceTask = task;
+            this.initTimerForTask(task);
+            await this.persist();
+            this.render();
+          }
+          break;
+        }
         // Close Study Workspace
         case "close-workspace": {
           this.stopTimer();
@@ -2348,11 +2347,12 @@ var BloomApp = class {
           this.render();
           break;
         }
-        // Complete task with reflection rating (Easy/Okay/Difficult)
-        case "complete-task": {
+        // Complete Activity from Study Workspace
+        case "finish-workspace-task": {
           const taskId = target.getAttribute("data-task-id");
-          const rating = target.getAttribute("data-rating");
           if (taskId && this.activeWorkspaceTask && this.activeWorkspaceTask.id === taskId) {
+            const ratingInput = document.querySelector('input[name="reflection-rating"]:checked');
+            const rating = ratingInput?.value || "Okay";
             this.activeWorkspaceTask.done = true;
             this.activeWorkspaceTask.completedAt = (/* @__PURE__ */ new Date()).toISOString();
             this.activeWorkspaceTask.understandingRating = rating;
@@ -2380,7 +2380,7 @@ var BloomApp = class {
               date: getIsoDate(),
               rating
             });
-            this.state.garden.growthPoints += 10;
+            this.state.garden.growthPoints += 15;
             if (this.state.garden.growthPoints >= 50 * this.state.garden.level) {
               this.state.garden.level++;
               this.state.garden.bloomsEarned++;
@@ -2392,8 +2392,22 @@ var BloomApp = class {
           }
           break;
         }
+        // Toggle Step in Workspace
+        case "toggle-step": {
+          const stepIdx = Number(target.getAttribute("data-step-index"));
+          if (this.activeWorkspaceTask) {
+            const current = new Set(this.activeWorkspaceTask.completedStepIndices || []);
+            if (current.has(stepIdx)) current.delete(stepIdx);
+            else current.add(stepIdx);
+            this.activeWorkspaceTask.completedStepIndices = Array.from(current);
+            await this.persist();
+            this.renderActiveWorkspace();
+          }
+          break;
+        }
         // Toggle Quick Task Done Checkbox
-        case "quick-toggle-task": {
+        case "quick-toggle-task":
+        case "toggle-task": {
           const taskId = target.getAttribute("data-task-id");
           const task = this.state.tasks.find((t) => t.id === taskId);
           if (task) {
@@ -2417,7 +2431,39 @@ var BloomApp = class {
           }
           break;
         }
-        // Propose Plan & Show Preview Modal
+        // Add Idea Task from Planner Suggestion Rail
+        case "add-idea-task": {
+          const chapId = target.getAttribute("data-chapter-id");
+          const subId = target.getAttribute("data-subject-id");
+          const chap = getChapter(chapId || "");
+          if (chap && chap.topics.length > 0) {
+            const top = chap.topics[0];
+            const act = buildActionableActivity(top, chap, "learning");
+            this.state.tasks.push({
+              id: `task-${this.selectedPlannerDate}-${chap.id}-${Date.now().toString(36)}`,
+              title: act.title,
+              day: this.selectedPlannerDate,
+              minutes: act.expectedMinutes,
+              subjectId: subId || chap.subjectId,
+              chapterId: chap.id,
+              topicId: top.id,
+              activityType: act.activityType,
+              learningObjective: act.learningObjective,
+              steps: act.steps,
+              completedStepIndices: [],
+              resourceRefs: act.resourceRefs,
+              completionEvidence: act.completionEvidence,
+              recommendationReason: `Recommended preparation for ${chap.title}`,
+              priority: "Normal",
+              done: false,
+              origin: "student"
+            });
+            await this.persist();
+            this.render();
+          }
+          break;
+        }
+        // Propose Plan & Show Modal
         case "propose-plan": {
           const planDay = target.getAttribute("data-day") || getIsoDate();
           const proposal = generatePlanProposal(this.state, planDay);
@@ -2450,73 +2496,7 @@ var BloomApp = class {
           }
           break;
         }
-        // Add idea to plan directly
-        case "add-idea-to-plan": {
-          const ideaData = target.getAttribute("data-idea");
-          if (ideaData) {
-            const parsed = JSON.parse(ideaData);
-            const newTask = {
-              id: `task-${this.selectedPlannerDate}-${parsed.chapterId}-${Date.now().toString(36)}`,
-              title: parsed.title,
-              day: this.selectedPlannerDate,
-              minutes: parsed.minutes || 25,
-              subjectId: parsed.subjectId,
-              chapterId: parsed.chapterId,
-              topicId: parsed.topicId,
-              activityType: parsed.activityType || "concept",
-              learningObjective: parsed.objective || "",
-              steps: parsed.steps || [],
-              completedStepIndices: [],
-              resourceRefs: parsed.resourceRefs || [],
-              completionEvidence: parsed.completionEvidence || "",
-              recommendationReason: parsed.reason || "",
-              priority: "Normal",
-              done: false,
-              origin: "student"
-            };
-            this.state.tasks.push(newTask);
-            await this.persist();
-            this.render();
-          }
-          break;
-        }
-        // Launch specific topic activity from Academics
-        case "launch-topic-activity": {
-          const chapId = target.getAttribute("data-chapter-id");
-          const topId = target.getAttribute("data-topic-id");
-          const mode = target.getAttribute("data-mode") || "learning";
-          const chap = getChapter(chapId || "");
-          const top = chap?.topics.find((t) => t.id === topId);
-          if (chap && top) {
-            const act = buildActionableActivity(top, chap, mode);
-            const task = {
-              id: `direct-${Date.now()}`,
-              title: act.title,
-              day: getIsoDate(),
-              minutes: act.expectedMinutes,
-              subjectId: chap.subjectId,
-              chapterId: chap.id,
-              topicId: top.id,
-              activityType: act.activityType,
-              learningObjective: act.learningObjective,
-              steps: act.steps,
-              completedStepIndices: [],
-              resourceRefs: act.resourceRefs,
-              completionEvidence: act.completionEvidence,
-              recommendationReason: `Direct launch from Academics \xB7 ${mode} mode`,
-              priority: "Normal",
-              done: false,
-              origin: "student"
-            };
-            this.state.tasks.push(task);
-            this.activeWorkspaceTask = task;
-            this.initTimerForTask(task);
-            await this.persist();
-            this.render();
-          }
-          break;
-        }
-        // Timer controls in Workspace
+        // Timer Controls
         case "timer-toggle": {
           this.toggleTimer();
           break;
@@ -2525,14 +2505,50 @@ var BloomApp = class {
           this.resetTimer();
           break;
         }
-        // Log Mistake drawer/modal
-        case "open-mistake-drawer":
+        // Modals
+        case "open-add-custom-task": {
+          this.showAddCustomTaskModal(target.getAttribute("data-day") || getIsoDate());
+          break;
+        }
+        case "save-custom-task": {
+          const title = document.getElementById("task-title-input")?.value;
+          const mins = Number(document.getElementById("task-mins-input")?.value) || 25;
+          const chapId = document.getElementById("task-chap-select")?.value || "phy-1";
+          const chap = getChapter(chapId);
+          if (title && chap) {
+            this.state.tasks.push({
+              id: `custom-${Date.now()}`,
+              title,
+              day: this.selectedPlannerDate,
+              minutes: mins,
+              subjectId: chap.subjectId,
+              chapterId: chap.id,
+              activityType: "concept",
+              learningObjective: `Independent study of ${title}`,
+              steps: [
+                "Read and understand the core concept.",
+                "Practice questions on blank paper.",
+                "Reflect on clarity and rate confidence."
+              ],
+              completedStepIndices: [],
+              resourceRefs: [chap.ncertRef],
+              completionEvidence: "Completed independent practice.",
+              recommendationReason: "Custom student task",
+              priority: "Normal",
+              done: false,
+              origin: "student"
+            });
+            await this.persist();
+            this.closeModal();
+            this.render();
+          }
+          break;
+        }
         case "open-new-mistake-modal": {
           const chapId = target.getAttribute("data-chapter-id") || "";
           this.showMistakeModal(chapId);
           break;
         }
-        // Save Mistake Entry
         case "save-mistake-entry": {
           const desc = document.getElementById("m-desc")?.value;
           const notes = document.getElementById("m-notes")?.value;
@@ -2558,13 +2574,11 @@ var BloomApp = class {
           }
           break;
         }
-        // Schedule Mistake Retry
         case "schedule-mistake-retry": {
           const mistakeId = target.getAttribute("data-mistake-id");
           const m = this.state.mistakes.find((item) => item.id === mistakeId);
           if (m) {
             const chap = getChapter(m.chapterId);
-            const top = chap?.topics[0];
             const retryTask = {
               id: `retry-${m.id}`,
               title: `Re-solve: ${m.questionDesc}`,
@@ -2572,16 +2586,15 @@ var BloomApp = class {
               minutes: 15,
               subjectId: m.subjectId,
               chapterId: m.chapterId,
-              topicId: m.topicId,
               activityType: "mistake_retry",
               learningObjective: `Overcome ${m.rootCause.replace("_", " ")}: ${m.studentNotes}`,
               steps: [
-                "Review the previous mistake notes and where logic failed.",
-                "Re-solve the full problem on blank paper without looking at hints.",
+                "Review previous mistake notes and where logic failed.",
+                "Re-solve full problem on blank paper without looking at hints.",
                 "Verify steps and mark mistake as resolved."
               ],
               completedStepIndices: [],
-              resourceRefs: top ? [top.ncertRef] : [],
+              resourceRefs: chap ? [chap.ncertRef] : [],
               completionEvidence: "Re-solved cleanly on paper with correct working.",
               recommendationReason: `Mistake Journal retry (${m.rootCause})`,
               priority: "High",
@@ -2595,12 +2608,10 @@ var BloomApp = class {
           }
           break;
         }
-        // Add School Test modal
         case "open-add-test-modal": {
           this.showAddTestModal();
           break;
         }
-        // Save School Test
         case "save-school-test": {
           const title = document.getElementById("test-title")?.value;
           const day2 = document.getElementById("test-date")?.value;
@@ -2623,7 +2634,29 @@ var BloomApp = class {
           }
           break;
         }
-        // Onboarding navigation
+        case "delete-test": {
+          const testId = target.getAttribute("data-test-id");
+          if (testId) {
+            this.state.tests = this.state.tests.filter((t) => t.id !== testId);
+            await this.persist();
+            this.render();
+          }
+          break;
+        }
+        case "open-tools": {
+          window.location.hash = "#tools";
+          break;
+        }
+        case "open-onboarding": {
+          this.onboardingStep = 1;
+          this.showOnboarding();
+          break;
+        }
+        case "close-modal": {
+          this.closeModal();
+          break;
+        }
+        // Onboarding flow
         case "onboarding-next": {
           const nextStep = Number(target.getAttribute("data-step") || 1);
           this.onboardingStep = nextStep;
@@ -2643,75 +2676,55 @@ var BloomApp = class {
           const sEnd = document.getElementById("ob-school-end")?.value;
           const tStart = document.getElementById("ob-tuition-start")?.value;
           const tEnd = document.getElementById("ob-tuition-end")?.value;
-          const travel = Number(document.getElementById("ob-travel")?.value) || 20;
-          this.state.profile.wakeTime = wake || "07:00";
-          this.state.profile.sleepTime = sleep || "23:00";
-          this.state.profile.schoolStart = sStart || "08:00";
-          this.state.profile.schoolEnd = sEnd || "14:00";
-          this.state.profile.tuitionStart = tStart || "17:00";
-          this.state.profile.tuitionEnd = tEnd || "21:00";
-          this.state.profile.travelMinutes = travel;
+          if (wake) this.state.profile.wakeTime = wake;
+          if (sleep) this.state.profile.sleepTime = sleep;
+          if (sStart) this.state.profile.schoolStart = sStart;
+          if (sEnd) this.state.profile.schoolEnd = sEnd;
+          if (tStart) this.state.profile.tuitionStart = tStart;
+          if (tEnd) this.state.profile.tuitionEnd = tEnd;
+          await this.persist();
           this.onboardingStep = 3;
           this.showOnboarding();
           break;
         }
-        case "choose-session-len": {
-          const mins = Number(target.getAttribute("data-mins"));
-          this.state.profile.sessionMinutes = mins;
-          this.showOnboarding();
-          break;
-        }
-        case "choose-break-len": {
-          const mins = Number(target.getAttribute("data-mins"));
-          this.state.profile.breakMinutes = mins;
-          this.showOnboarding();
-          break;
-        }
-        case "toggle-diff-subject": {
-          const subId = target.getAttribute("data-subject-id");
-          if (subId) {
-            const list = this.state.profile.difficultSubjects;
-            if (list.includes(subId)) {
-              this.state.profile.difficultSubjects = list.filter((id) => id !== subId);
-            } else {
-              this.state.profile.difficultSubjects.push(subId);
-            }
-            this.showOnboarding();
+        case "save-ob-step-3": {
+          const diffSub = document.querySelector('input[name="ob-diff"]:checked')?.value;
+          if (diffSub) {
+            this.state.profile.difficultSubjects = [diffSub];
           }
+          await this.persist();
+          this.onboardingStep = 4;
+          this.showOnboarding();
           break;
         }
-        case "complete-onboarding": {
+        case "finish-onboarding": {
           this.state.profile.onboardingComplete = true;
-          const initialPlan = generatePlanProposal(this.state, getIsoDate());
-          if (initialPlan.blocks.length > 0) {
-            this.state.tasks.push(...initialPlan.blocks);
-          }
           await this.persist();
           this.closeModal();
           this.render();
           break;
         }
-        // Close generic modal
-        case "close-modal": {
-          this.closeModal();
+        case "export-state": {
+          const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `bloom-study-vault-${getIsoDate()}.json`;
+          a.click();
+          break;
+        }
+        case "reset-state": {
+          if (confirm("Are you sure you want to reset all study progress and records?")) {
+            this.state = initialAppState();
+            await this.persist();
+            this.render();
+          }
           break;
         }
       }
     });
     document.addEventListener("change", async (e) => {
       const target = e.target;
-      if (target.classList.contains("step-checkbox")) {
-        const input = target;
-        const stepIdx = Number(input.getAttribute("data-step-index"));
-        if (this.activeWorkspaceTask) {
-          const current = new Set(this.activeWorkspaceTask.completedStepIndices || []);
-          if (input.checked) current.add(stepIdx);
-          else current.delete(stepIdx);
-          this.activeWorkspaceTask.completedStepIndices = Array.from(current);
-          await this.persist();
-          this.renderActiveWorkspace();
-        }
-      }
       if (target.classList.contains("status-select")) {
         const select = target;
         const chapId = select.getAttribute("data-chapter-id");
@@ -2723,18 +2736,71 @@ var BloomApp = class {
           this.render();
         }
       }
-      if (target.classList.contains("rating-select")) {
-        const select = target;
-        const chapId = select.getAttribute("data-chapter-id");
-        if (chapId) {
-          const current = this.state.chapterProgress[chapId] || { status: "Not started" };
-          current.rating = select.value || void 0;
-          this.state.chapterProgress[chapId] = current;
-          await this.persist();
+      if (target.id === "planner-date-input") {
+        const input = target;
+        if (input.value) {
+          this.selectedPlannerDate = input.value;
           this.render();
         }
       }
     });
+  }
+  // Timer methods
+  initTimerForTask(task) {
+    this.stopTimer();
+    this.timerSeconds = task.minutes * 60;
+    this.timerTotalAllocated = task.minutes * 60;
+    this.timerSessionElapsed = 0;
+    this.timerRunning = false;
+  }
+  toggleTimer() {
+    if (this.timerRunning) {
+      this.stopTimer();
+    } else {
+      this.startTimer();
+    }
+  }
+  startTimer() {
+    this.timerRunning = true;
+    this.updateTimerControls();
+    this.timerInterval = window.setInterval(() => {
+      if (this.timerSeconds > 0) {
+        this.timerSeconds--;
+        this.timerSessionElapsed++;
+        this.updateTimerDisplay();
+      } else {
+        this.stopTimer();
+        alert("Focus session complete! Take a gentle rest.");
+      }
+    }, 1e3);
+  }
+  stopTimer() {
+    this.timerRunning = false;
+    if (this.timerInterval !== null) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    this.updateTimerControls();
+  }
+  resetTimer() {
+    this.stopTimer();
+    this.timerSeconds = this.timerTotalAllocated;
+    this.timerSessionElapsed = 0;
+    this.updateTimerDisplay();
+  }
+  updateTimerDisplay() {
+    const el = document.getElementById("workspace-timer-display");
+    if (el) {
+      const mins = Math.floor(this.timerSeconds / 60);
+      const secs = this.timerSeconds % 60;
+      el.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+  }
+  updateTimerControls() {
+    const label = document.getElementById("timer-btn-label");
+    if (label) {
+      label.textContent = this.timerRunning ? "Pause Focus" : "Start Focus";
+    }
   }
   closeModal() {
     const modalContainer = document.getElementById("modal-container");
@@ -2750,45 +2816,39 @@ var BloomApp = class {
     const modalContainer = document.getElementById("modal-container");
     if (!modalContainer) return;
     modalContainer.innerHTML = `
-      <div class="modal-backdrop">
-        <div class="modal-card liquid-glass-panel">
-          <header class="modal-header">
+      <div style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+        <div style="width:min(640px,100%); background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,0.25); padding:28px;">
+          <div class="section-head intro" style="margin-bottom:16px;">
             <div>
-              <h2 class="modal-title">${icon("sparkles", 18)} Proposed Study Schedule</h2>
-              <p class="modal-subtitle">${proposal.day} \xB7 ${proposal.blocks.length} activities proposed (${proposal.plannedMinutes} min)</p>
+              <p class="eyebrow">${proposal.day} \xB7 ${proposal.plannedMinutes} MIN</p>
+              <h2 style="font-size:24px;">Proposed Study Schedule</h2>
             </div>
-            <button type="button" class="btn-icon" data-action="close-modal" aria-label="Close">
-              ${icon("x", 18)}
+            <button type="button" class="tool" data-action="close-modal" aria-label="Close">
+              ${icon("x")}
             </button>
-          </header>
+          </div>
 
-          <div class="modal-body">
-            <p class="proposal-intro">
-              BLOOM generated these activities based on your confirmed CBSE priorities, verified marks scope, and available study windows. Review before applying:
-            </p>
+          <p style="color:var(--soft); font-size:13px; line-height:1.5; margin-bottom:18px;">
+            BLOOM generated these activities based on your confirmed CBSE priorities, verified marks scope, and available study windows. Review before applying:
+          </p>
 
-            <div class="proposed-blocks-list">
-              ${proposal.blocks.map((b) => `
-                <div class="proposal-block-item glass-subcard">
-                  <div class="block-time">${b.time || "Flex"}</div>
-                  <div class="block-details">
-                    <div class="block-title-row">
-                      <strong>${b.title}</strong>
-                      <span class="subject-tag subject-${b.subjectId}">${getSubject(b.subjectId)?.title}</span>
-                    </div>
-                    <span class="block-reason">${b.recommendationReason}</span>
-                    <span class="block-duration">${icon("timer", 13)} ${b.minutes} min \xB7 ${b.activityType.replace("_", " ")}</span>
-                  </div>
+          <div class="rows" style="max-height:360px; overflow-y:auto; margin-bottom:20px;">
+            ${proposal.blocks.map((b) => `
+              <article class="task-row">
+                <div class="row-main">
+                  <span class="subject subject-${b.subjectId}">${getSubject(b.subjectId)?.title}</span>
+                  <strong>${b.title}</strong>
+                  <small>${b.recommendationReason} \xB7 ${b.minutes} min</small>
                 </div>
-              `).join("")}
-            </div>
+              </article>
+            `).join("")}
+          </div>
 
-            <div class="modal-actions">
-              <button type="button" class="btn quiet" data-action="close-modal">Cancel</button>
-              <button type="button" class="btn primary" data-action="approve-plan-proposal" data-proposal-blocks='${JSON.stringify(proposal.blocks).replace(/'/g, "&#39;")}'>
-                ${icon("check", 16)} Approve & Save Plan
-              </button>
-            </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="button quiet" data-action="close-modal">Cancel</button>
+            <button type="button" class="button primary" data-action="approve-plan-proposal" data-proposal-blocks='${JSON.stringify(proposal.blocks).replace(/'/g, "&#39;")}'>
+              ${icon("check")} Approve & Save Plan
+            </button>
           </div>
         </div>
       </div>
@@ -2798,67 +2858,62 @@ var BloomApp = class {
     const modalContainer = document.getElementById("modal-container");
     if (!modalContainer) return;
     modalContainer.innerHTML = `
-      <div class="modal-backdrop">
-        <div class="modal-card liquid-glass-panel">
-          <header class="modal-header">
+      <div style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+        <div style="width:min(540px,100%); background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,0.25); padding:28px;">
+          <div class="section-head intro" style="margin-bottom:16px;">
             <div>
-              <h2 class="modal-title">${icon("alert-circle", 18)} Log Doubt or Mistake</h2>
-              <p class="modal-subtitle">Capturing mistakes immediately transforms them into spaced retries.</p>
+              <p class="eyebrow">MISTAKE JOURNAL</p>
+              <h2 style="font-size:22px;">Log Doubt or Mistake</h2>
             </div>
-            <button type="button" class="btn-icon" data-action="close-modal" aria-label="Close">
-              ${icon("x", 18)}
+            <button type="button" class="tool" data-action="close-modal" aria-label="Close">
+              ${icon("x")}
             </button>
-          </header>
+          </div>
 
-          <div class="modal-body">
-            <div class="form-stack">
-              <label class="form-field">
-                <span>Subject & Chapter</span>
-                <select id="m-chap" class="glass-select">
-                  <option value="phy-1" ${prefillChapterId === "phy-1" ? "selected" : ""}>Physics: Electric Charges & Fields</option>
-                  <option value="phy-2" ${prefillChapterId === "phy-2" ? "selected" : ""}>Physics: Electrostatic Potential & Capacitance</option>
-                  <option value="phy-3" ${prefillChapterId === "phy-3" ? "selected" : ""}>Physics: Current Electricity</option>
-                  <option value="phy-9" ${prefillChapterId === "phy-9" ? "selected" : ""}>Physics: Ray Optics</option>
-                  <option value="chem-1" ${prefillChapterId === "chem-1" ? "selected" : ""}>Chemistry: Solutions</option>
-                  <option value="chem-2" ${prefillChapterId === "chem-2" ? "selected" : ""}>Chemistry: Electrochemistry</option>
-                  <option value="math-1" ${prefillChapterId === "math-1" ? "selected" : ""}>Math: Continuity & Differentiability</option>
-                  <option value="math-3" ${prefillChapterId === "math-3" ? "selected" : ""}>Math: Integrals</option>
-                </select>
-              </label>
+          <div style="display:grid; gap:14px; margin-bottom:20px;">
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Subject & Chapter
+              <select id="m-chap" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+                ${CBSE_CHAPTERS.map((c) => `
+                  <option value="${c.id}" ${prefillChapterId === c.id ? "selected" : ""}>
+                    ${getSubject(c.subjectId)?.title}: ${c.title}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
 
-              <label class="form-field">
-                <span>Question or Concept Problem</span>
-                <input type="text" id="m-desc" class="glass-input" placeholder="e.g. Lens Maker focal length shift in water" required>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Root Cause
+              <select id="m-cause" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+                <option value="conceptual">Conceptual Misunderstanding</option>
+                <option value="calculation">Calculation / Sign Error</option>
+                <option value="formula_recall">Formula Recall Failure</option>
+                <option value="misread_question">Misread Question Stem</option>
+                <option value="presentation">Presentation / Units / Steps Omission</option>
+              </select>
+            </label>
 
-              <label class="form-field">
-                <span>Root Cause of Error</span>
-                <select id="m-cause" class="glass-select">
-                  <option value="conceptual">Concept Gap / Misunderstanding</option>
-                  <option value="calculation">Calculation or Sign Convention Slip</option>
-                  <option value="formula_recall">Formula Forgotten / Incomplete</option>
-                  <option value="presentation">Presentation / Step Justification</option>
-                  <option value="misread_question">Misread Question Details</option>
-                </select>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Question Description
+              <input type="text" id="m-desc" placeholder="e.g. Q4 on Lens Maker's formula with differing radii" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
 
-              <label class="form-field">
-                <span>What went wrong?</span>
-                <textarea id="m-notes" class="glass-textarea" placeholder="Explain where your thinking faltered..."></textarea>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              What Went Wrong
+              <textarea id="m-notes" rows="3" placeholder="Forgot to apply Cartesian sign convention for R2" style="border-radius:8px; border:1px solid var(--line); padding:8px 10px; font-size:13px; font-family:inherit;"></textarea>
+            </label>
 
-              <label class="form-field">
-                <span>Correct Method or Key Takeaway</span>
-                <textarea id="m-correction" class="glass-textarea" placeholder="Note the right equation or principle..."></textarea>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Key Takeaway / Correct Rule
+              <textarea id="m-correction" rows="2" placeholder="Always sketch the principal axis and mark signs before calculating" style="border-radius:8px; border:1px solid var(--line); padding:8px 10px; font-size:13px; font-family:inherit;"></textarea>
+            </label>
+          </div>
 
-              <div class="modal-actions">
-                <button type="button" class="btn quiet" data-action="close-modal">Cancel</button>
-                <button type="button" class="btn primary" data-action="save-mistake-entry">
-                  ${icon("check", 16)} Save to Mistake Journal
-                </button>
-              </div>
-            </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="button quiet" data-action="close-modal">Cancel</button>
+            <button type="button" class="button primary" data-action="save-mistake-entry">
+              ${icon("check")} Save Mistake Note
+            </button>
           </div>
         </div>
       </div>
@@ -2868,126 +2923,102 @@ var BloomApp = class {
     const modalContainer = document.getElementById("modal-container");
     if (!modalContainer) return;
     modalContainer.innerHTML = `
-      <div class="modal-backdrop">
-        <div class="modal-card liquid-glass-panel">
-          <header class="modal-header">
+      <div style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+        <div style="width:min(480px,100%); background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,0.25); padding:28px;">
+          <div class="section-head intro" style="margin-bottom:16px;">
             <div>
-              <h2 class="modal-title">${icon("plus", 18)} Add School Test</h2>
-              <p class="modal-subtitle">Save a confirmed test to automatically prioritize its syllabus.</p>
+              <p class="eyebrow">SCHOOL TESTS</p>
+              <h2 style="font-size:22px;">Add Upcoming Test</h2>
             </div>
-            <button type="button" class="btn-icon" data-action="close-modal" aria-label="Close">
-              ${icon("x", 18)}
+            <button type="button" class="tool" data-action="close-modal" aria-label="Close">
+              ${icon("x")}
             </button>
-          </header>
+          </div>
 
-          <div class="modal-body">
-            <div class="form-stack">
-              <label class="form-field">
-                <span>Test Name</span>
-                <input type="text" id="test-title" class="glass-input" placeholder="e.g. Pre-Board 1 Physics" required>
-              </label>
+          <div style="display:grid; gap:14px; margin-bottom:20px;">
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Subject
+              <select id="test-sub" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+                ${CBSE_SUBJECTS.map((s) => `<option value="${s.id}">${s.title}</option>`).join("")}
+              </select>
+            </label>
 
-              <label class="form-field">
-                <span>Subject</span>
-                <select id="test-sub" class="glass-select">
-                  <option value="physics">Physics (042)</option>
-                  <option value="chemistry">Chemistry (043)</option>
-                  <option value="math">Mathematics (041)</option>
-                  <option value="english">English Core (301)</option>
-                  <option value="pe">Physical Education (048)</option>
-                </select>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Test Title
+              <input type="text" id="test-title" placeholder="e.g. Pre-Board 1 Physics" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
 
-              <label class="form-field">
-                <span>Test Date</span>
-                <input type="date" id="test-date" class="glass-input" value="${addDays(getIsoDate(), 7)}" required>
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Date
+              <input type="date" id="test-date" value="${getIsoDate()}" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
 
-              <label class="form-field">
-                <span>Maximum Marks</span>
-                <input type="number" id="test-max" class="glass-input" value="70" min="10" max="100">
-              </label>
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Maximum Marks
+              <input type="number" id="test-max" value="70" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
+          </div>
 
-              <div class="modal-actions">
-                <button type="button" class="btn quiet" data-action="close-modal">Cancel</button>
-                <button type="button" class="btn primary" data-action="save-school-test">
-                  ${icon("check", 16)} Save Test
-                </button>
-              </div>
-            </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="button quiet" data-action="close-modal">Cancel</button>
+            <button type="button" class="button primary" data-action="save-school-test">
+              ${icon("check")} Save Test
+            </button>
           </div>
         </div>
       </div>
     `;
   }
-  // Timer Management
-  initTimerForTask(task) {
-    this.stopTimer();
-    this.timerTotalAllocated = (task.minutes || 25) * 60;
-    this.timerSeconds = this.timerTotalAllocated;
-    this.timerSessionElapsed = 0;
-    this.timerRunning = false;
-  }
-  toggleTimer() {
-    if (this.timerRunning) {
-      this.pauseTimer();
-    } else {
-      this.startTimer();
-    }
-  }
-  startTimer() {
-    if (this.timerRunning) return;
-    this.timerRunning = true;
-    this.updateTimerControlsUI();
-    this.timerInterval = window.setInterval(() => {
-      if (this.timerSeconds > 0) {
-        this.timerSeconds--;
-        this.timerSessionElapsed++;
-        this.updateTimerDisplay();
-      } else {
-        this.stopTimer();
-        alert("Focus session complete! Time to reflect and log your understanding rating.");
-      }
-    }, 1e3);
-  }
-  pauseTimer() {
-    this.timerRunning = false;
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    this.updateTimerControlsUI();
-  }
-  stopTimer() {
-    this.pauseTimer();
-  }
-  resetTimer() {
-    this.pauseTimer();
-    this.timerSeconds = this.timerTotalAllocated;
-    this.updateTimerDisplay();
-  }
-  updateTimerDisplay() {
-    const displayEl = document.getElementById("workspace-timer-display");
-    if (!displayEl) return;
-    const mins = Math.floor(this.timerSeconds / 60);
-    const secs = this.timerSeconds % 60;
-    displayEl.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  }
-  updateTimerControlsUI() {
-    const btnEl = document.getElementById("timer-start-pause");
-    const labelEl = document.getElementById("timer-btn-label");
-    if (!btnEl || !labelEl) return;
-    if (this.timerRunning) {
-      labelEl.textContent = "Pause";
-      btnEl.classList.add("timer-running");
-    } else {
-      labelEl.textContent = "Resume";
-      btnEl.classList.remove("timer-running");
-    }
+  showAddCustomTaskModal(day) {
+    const modalContainer = document.getElementById("modal-container");
+    if (!modalContainer) return;
+    modalContainer.innerHTML = `
+      <div style="position:fixed; inset:0; z-index:50; background:rgba(41,27,39,0.65); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; overflow-y:auto;">
+        <div style="width:min(480px,100%); background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,0.25); padding:28px;">
+          <div class="section-head intro" style="margin-bottom:16px;">
+            <div>
+              <p class="eyebrow">${day}</p>
+              <h2 style="font-size:22px;">Add Custom Study Activity</h2>
+            </div>
+            <button type="button" class="tool" data-action="close-modal" aria-label="Close">
+              ${icon("x")}
+            </button>
+          </div>
+
+          <div style="display:grid; gap:14px; margin-bottom:20px;">
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Activity Title
+              <input type="text" id="task-title-input" placeholder="e.g. Derive Lens Maker's Formula" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
+
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Chapter
+              <select id="task-chap-select" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+                ${CBSE_CHAPTERS.map((c) => `
+                  <option value="${c.id}">${getSubject(c.subjectId)?.title}: ${c.title}</option>
+                `).join("")}
+              </select>
+            </label>
+
+            <label style="display:grid; gap:5px; font-size:12px; font-weight:600;">
+              Allocated Minutes
+              <input type="number" id="task-mins-input" value="30" step="5" min="10" max="180" style="min-height:38px; border-radius:8px; border:1px solid var(--line); padding:6px 10px; font-size:13px;">
+            </label>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="button quiet" data-action="close-modal">Cancel</button>
+            <button type="button" class="button primary" data-action="save-custom-task">
+              ${icon("check")} Add to Plan
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 };
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const app = new BloomApp();
-  app.init().catch((err) => console.error("Error starting BLOOM:", err));
+  app.init().catch(console.error);
 });
 //# sourceMappingURL=app.bundle.js.map
