@@ -1,0 +1,16 @@
+{
+  "name": "BLOOM · CBSE XII 2027",
+  "short_name": "BLOOM",
+  "description": "Private CBSE Class XII Board Study Companion for Aastha",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFF5F8",
+  "theme_color": "#FFF5F8",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192' fill='%23D96C9D'><circle cx='96' cy='96' r='80'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
