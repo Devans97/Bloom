@@ -1,7 +1,6 @@
 {
-  "name": "bloom-cbse",
+  "name": "bloom-preview",
   "version": "1.0.0",
-  "description": "BLOOM — Private, Personalised CBSE Class XII 2027 Preparation Companion for Aastha",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,6 +13,9 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "motion": "^14.14.0"
+    "motion": "^14.14.0",
+    "pdfjs-dist": "^5.4.394",
+    "tesseract.js": "^6.0.1",
+    "tesseract.js-core": "^6.0.0"
   }
 }

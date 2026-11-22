@@ -1,104 +1,59 @@
-/**
- * BLOOM — Web Crypto Vault Encryption (AES-GCM 256-bit + PBKDF2)
- * Client-side cryptographic envelope for Aastha's private study records.
- */
-
-export interface VaultEnvelope {
-  format: 'bloom-vault-v1';
-  salt: string; // base64
-  iv: string;   // base64
-  ciphertext: string; // base64
+export interface Envelope {
+  format:'bloom-vault';
+  version:1;
+  cipher:'AES-256-GCM';
+  kdf:'PBKDF2-SHA256';
+  iterations:310000;
+  salt:string;
+  iv:string;
+  ciphertext:string;
 }
 
-let activePassphrase: string | null = null;
+const iterations=310000;
+const context=new TextEncoder().encode('BLOOM|vault|1|AES-256-GCM|PBKDF2-SHA256|310000');
+let vaultPassphrase:string|null=null;
 
-export const setVaultPassphrase = (p: string | null) => { activePassphrase = p; };
-export const getVaultPassphrase = () => activePassphrase;
+/** Session memory only: callers must not write this value to any persistent store. */
+export const setVaultPassphrase=(value:string|null)=>{vaultPassphrase=value;};
+export const getVaultPassphrase=()=>vaultPassphrase;
 
-export function isVaultEnvelope(value: unknown): value is VaultEnvelope {
-  if (!value || typeof value !== 'object') return false;
-  const env = value as Record<string, unknown>;
-  return env.format === 'bloom-vault-v1' &&
-    typeof env.salt === 'string' &&
-    typeof env.iv === 'string' &&
-    typeof env.ciphertext === 'string';
-}
-
-function bufferToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+function encode(bytes:Uint8Array):string{
+  let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
   return btoa(binary);
 }
-
-function base64ToBuffer(b64: string): ArrayBuffer {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
+function decode(value:string):Uint8Array{
+  if(!/^[A-Za-z0-9+/]*={0,2}$/.test(value)||value.length%4)throw new Error('The encrypted file is not valid.');
+  const binary=atob(value),result=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)result[i]=binary.charCodeAt(i);
+  return result;
 }
-
-async function deriveKey(passphrase: string, salt: ArrayBuffer): Promise<CryptoKey> {
-  const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(passphrase),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt,
-      iterations: 250000,
-      hash: 'SHA-256'
-    },
-    baseKey,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+export function isEnvelope(value:unknown):value is Envelope{
+  if(!value||typeof value!=='object'||Array.isArray(value))return false;
+  const v=value as Record<string,unknown>;
+  return v.format==='bloom-vault'&&v.version===1&&v.cipher==='AES-256-GCM'&&v.kdf==='PBKDF2-SHA256'&&v.iterations===iterations
+    &&typeof v.salt==='string'&&typeof v.iv==='string'&&typeof v.ciphertext==='string';
 }
-
-export async function sealVault(payload: unknown, passphrase: string): Promise<VaultEnvelope> {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(passphrase, salt.buffer);
-
-  const jsonStr = JSON.stringify(payload);
-  const enc = new TextEncoder();
-  const ciphertextBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    enc.encode(jsonStr)
-  );
-
-  return {
-    format: 'bloom-vault-v1',
-    salt: bufferToBase64(salt.buffer),
-    iv: bufferToBase64(iv.buffer),
-    ciphertext: bufferToBase64(ciphertextBuffer)
-  };
+async function derive(passphrase:string,salt:Uint8Array):Promise<CryptoKey>{
+  if(!crypto?.subtle)throw new Error('Encryption requires HTTPS or a localhost browser.');
+  if(!passphrase||passphrase.length>1024)throw new Error('Enter your vault passphrase.');
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(passphrase),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt as BufferSource,iterations,hash:'SHA-256'},key,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
-
-export async function unsealVault<T = unknown>(envelope: VaultEnvelope, passphrase: string): Promise<T> {
-  const salt = base64ToBuffer(envelope.salt);
-  const iv = base64ToBuffer(envelope.iv);
-  const ciphertext = base64ToBuffer(envelope.ciphertext);
-
-  const key = await deriveKey(passphrase, salt);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: new Uint8Array(iv) },
-    key,
-    ciphertext
-  );
-
-  const dec = new TextDecoder();
-  return JSON.parse(dec.decode(decrypted)) as T;
+export async function seal(value:unknown,passphrase:string):Promise<Envelope>{
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const text=JSON.stringify(value);if(text===undefined)throw new Error('There is no data to encrypt.');
+  const bytes=new TextEncoder().encode(text);if(bytes.length>20*1024*1024)throw new Error('The vault is too large for this build. Export smaller study files.');
+  const key=await derive(passphrase,salt);
+  const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:context},key,bytes);
+  return {format:'bloom-vault',version:1,cipher:'AES-256-GCM',kdf:'PBKDF2-SHA256',iterations,salt:encode(salt),iv:encode(iv),ciphertext:encode(new Uint8Array(encrypted))};
+}
+export async function unseal(envelope:unknown,passphrase:string):Promise<unknown>{
+  if(!isEnvelope(envelope)||envelope.ciphertext.length>28*1024*1024)throw new Error('Choose a supported BLOOM encrypted vault.');
+  const salt=decode(envelope.salt),iv=decode(envelope.iv),ciphertext=decode(envelope.ciphertext);
+  if(salt.length!==16||iv.length!==12||ciphertext.length<16)throw new Error('The encrypted vault is damaged.');
+  const key=await derive(passphrase,salt);
+  try{
+    const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv as BufferSource,additionalData:context},key,ciphertext as BufferSource);
+    return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain));
+  }catch{throw new Error('The passphrase is incorrect, or the encrypted vault was changed or damaged.');}
 }

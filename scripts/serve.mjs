@@ -33,8 +33,15 @@ createServer((req, res) => {
     const ext = extname(target).toLowerCase();
     res.writeHead(200, {
       'Content-Type': types[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
-      'X-Content-Type-Options': 'nosniff'
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Cross-Origin-Opener-Policy': 'same-origin'
     });
     createReadStream(target).pipe(res);
   } catch {

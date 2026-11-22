@@ -1,0 +1,1 @@
+globalThis.BLOOM_CONFIG={"supabaseUrl":"","supabaseAnonKey":""};

@@ -1,1 +1,205 @@
-.vault-page>.intro>p.muted{margin-top:12px}.vault-panel{margin-top:23px;padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--white)}.vault-panel .section-head{align-items:flex-start}.vault-panel h2{font-size:26px}.vault-panel .muted{font-size:13px;line-height:1.6}.vault-panel>small{display:block;margin-top:12px}.vault-badge{font-size:11px;white-space:nowrap;background:var(--sage);color:var(--green);border-radius:5px;padding:5px 8px}.vault-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px}.vault-footnote{max-width:680px;margin-top:22px;font-size:12px;color:var(--soft);line-height:1.6}.vault-form{display:grid;gap:12px}.vault-form>.muted,.vault-review>.muted{font-size:13px;line-height:1.6}.vault-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px;margin:16px 0;border:1px solid var(--line);border-radius:9px;background:var(--sage)}.vault-summary div{min-width:0}.vault-summary dt{font-size:11px;color:var(--soft)}.vault-summary dd{margin:3px 0 0;font-weight:650;overflow-wrap:anywhere}.vault-feedback{margin-top:15px;color:var(--green);font-size:13px}.vault-form label{display:grid;gap:5px;font-size:13px;font-weight:620}.vault-review .form-error{margin-top:12px}@media(max-width:560px){.vault-panel{padding:16px}.vault-panel .section-head{gap:8px}.vault-panel h2{font-size:24px}.vault-actions .button{font-size:13px}.vault-summary{padding:12px;gap:10px}}
+/**
+ * BLOOM - Encrypted Privacy Vault Stylesheet
+ * Zero-Knowledge AES-256-GCM Interface Styling
+ */
+
+.vault-page > .intro > p.muted {
+  margin-top: 12px;
+}
+
+.vault-panel {
+  margin-top: 23px;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 4px 24px rgba(117, 68, 91, 0.04);
+}
+
+.vault-panel .section-head {
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.vault-panel h2 {
+  font-size: 26px;
+  font-family: var(--display);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.vault-panel .muted {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.vault-panel > small {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--soft);
+}
+
+.vault-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--sage);
+  color: var(--green);
+  border-radius: 6px;
+  padding: 5px 10px;
+  letter-spacing: 0.03em;
+}
+
+.vault-badge.unlocked {
+  background: rgba(70, 92, 69, 0.12);
+  color: var(--green);
+}
+
+.vault-badge.locked {
+  background: rgba(117, 68, 91, 0.12);
+  color: var(--rose-dark);
+}
+
+.vault-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.vault-footnote {
+  max-width: 680px;
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--soft);
+  line-height: 1.6;
+}
+
+.vault-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.vault-form > .muted,
+.vault-review > .muted {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.vault-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px;
+  margin: 18px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--sage);
+}
+
+.vault-summary div {
+  min-width: 0;
+}
+
+.vault-summary dt {
+  font-size: 11px;
+  color: var(--soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.vault-summary dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.vault-feedback {
+  margin-top: 15px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(70, 92, 69, 0.08);
+  border: 1px solid rgba(70, 92, 69, 0.16);
+}
+
+.vault-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.vault-form input[type="password"],
+.vault-form input[type="text"] {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vault-form input:focus {
+  outline: none;
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(117, 68, 91, 0.12);
+  background: var(--white);
+}
+
+.vault-security-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(117, 68, 91, 0.04);
+  border: 1px solid rgba(117, 68, 91, 0.1);
+  font-size: 12px;
+  color: var(--rose-dark);
+}
+
+.vault-review .form-error {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(180, 40, 40, 0.08);
+  color: #b42828;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .vault-panel {
+    padding: 18px 16px;
+  }
+  .vault-panel .section-head {
+    gap: 8px;
+  }
+  .vault-panel h2 {
+    font-size: 24px;
+  }
+  .vault-actions .button {
+    font-size: 13px;
+    width: 100%;
+  }
+  .vault-summary {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 12px;
+  }
+}

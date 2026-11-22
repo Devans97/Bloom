@@ -1,0 +1,388 @@
+import { chapters, chapterById, subjects, subjectById } from './curriculum.js';
+import { today, plus, labelDay, conflict, ratings, revisionDate } from './model.js';
+import { errorCategories, focusElapsed, saveFocusSession, resultError, topicEvidence, scoreTrend, recordedErrorEvidence } from './study-data.js';
+import { esc } from './host.js';
+import { extractDocument } from './importer.js';
+const action = (a, label, value = '', kind = 'outline') => `<button type="button" class="button ${kind}" data-study-action="${a}" data-value="${esc(value)}">${esc(label)}</button>`;
+const opt = (value, label, selected = '') => `<option value="${esc(value)}"${value === selected ? ' selected' : ''}>${esc(label)}</option>`;
+const subjectOptions = (value = '') => opt('', 'Choose a subject', value) + subjects.map(s => opt(s.id, s.title, value)).join('');
+const chapterOptions = (subject = '', value = '') => opt('', 'Chapter not mapped', value) + chapters.filter(c => c.subject === subject).map(c => opt(c.id, c.title, value)).join('');
+const shortDate = (day) => day ? labelDay(day, true) : 'No date';
+const subName = (id) => subjectById(id)?.title ?? 'Independent study';
+const timeText = (seconds) => `${Math.floor(Math.max(0, seconds) / 60).toString().padStart(2, '0')}:${Math.floor(Math.max(0, seconds) % 60).toString().padStart(2, '0')}`;
+const emptyState = (title, text, button = '') => `<div class="study-empty"><span aria-hidden="true">✧</span><h3>${esc(title)}</h3><p>${esc(text)}</p>${button}</div>`;
+const heading = (kicker, title, text = '', button = '') => `<div class="section-head intro"><div><p class="eyebrow">${esc(kicker)}</p><h1>${esc(title)}</h1>${text ? `<p class="study-lead">${esc(text)}</p>` : ''}</div>${button}</div>`;
+const errorHtml = '<p class="form-error" data-study-error role="alert"></p>';
+const submit = (label, extra = '') => `<div class="dialog-actions">${extra}<button class="button primary" type="submit">${esc(label)}</button></div>`;
+const nameOfChapter = (id) => chapterById(id)?.title ?? 'No mapped chapter';
+const currentData = (s) => s.study;
+let activeHost, interval, timerSaveBusy = false, lastCheckpoint = Date.now();
+let checkpoint;
+function focusPage(host) {
+    const state = host.getState(), data = currentData(state), active = data.activeFocus;
+    const elapsed = active ? focusElapsed(active) : 0, left = active ? Math.ceil((active.targetSeconds * 1000 - elapsed) / 1000) : data.focusMinutes * 60;
+    const ratio = active ? Math.min(1, elapsed / (active.targetSeconds * 1000)) : 0;
+    const history = [...data.sessions].reverse().slice(0, 12);
+    return `<div class="page study-page">${heading('ONE THING AT A TIME', 'Focus', 'A gentle timer. Only time you actually spend is saved.')}
+  <div class="focus-layout"><section class="timer-surface"><p class="eyebrow">${active ? esc(active.kind === 'break' ? 'A MOMENT TO REST' : active.title) : 'YOUR NEXT SESSION'}</p><div class="timer-dial"><svg viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="96"/><circle class="timer-ring" cx="110" cy="110" r="96" style="--timer-ratio:${ratio}"/></svg><div><span class="timer-readout" role="timer" aria-label="Time remaining">${timeText(left)}</span><small data-timer-state>${active ? (active.runningSince === null ? 'Paused' : 'Focusing') : 'minutes to focus'}</small></div></div>
+  ${active ? `<h2>${esc(active.title)}</h2><p class="muted">${esc(subName(active.subject))}${active.chapter ? ' · ' + esc(nameOfChapter(active.chapter)) : ''}</p><div class="study-actions">${action(active.runningSince === null ? 'resume-focus' : 'pause-focus', active.runningSince === null ? 'Resume' : 'Pause', '', 'primary')}${action('finish-focus', 'Finish & save')}${action('discard-focus', 'Discard session', '', 'quiet')}</div><p class="study-footnote">The timer pauses when BLOOM is hidden. Save records only the elapsed time; breaks are kept separate.</p>` :
+        `<p class="muted">A short session is enough to begin.</p><div class="study-actions">${action('start-focus', 'Begin a focus session', '', 'primary')}${action('start-break', 'Take a break')}</div><p class="study-footnote">${data.focusMinutes}-minute focus · ${data.breakMinutes}-minute break ${action('timer-settings', 'Adjust', '', 'quiet')}</p>`}</section>
+  <section class="study-panel"><div class="section-head"><h2>Session history</h2></div>${history.length ? `<div class="rows">${history.map(s => `<article class="study-record"><div><strong>${esc(s.title)}</strong><small>${esc(subName(s.subject))} · ${shortDate(s.day)} · ${s.kind === 'break' ? 'Break' : 'Focus'}</small>${s.note ? `<p class="session-note">${esc(s.note)}</p>` : ''}${s.rating ? `<small>${esc(s.rating)}</small>` : ''}</div><span>${Math.floor(s.seconds / 60)}m ${s.seconds % 60}s</span></article>`).join('')}</div>` : emptyState('Your first session is waiting', 'Start the timer when you begin studying. Your actual time will appear here.')}</section></div></div>`;
+}
+function reviewPage(host) {
+    const state = host.getState(), data = currentData(state), day = today();
+    const reviews = Object.entries(state.progress).filter(([, p]) => p.next).sort((a, b) => (a[1].next ?? '').localeCompare(b[1].next ?? ''));
+    const due = reviews.filter(([, p]) => p.next <= day), future = reviews.filter(([, p]) => p.next > day);
+    const open = data.mistakes.filter(m => !m.resolved), done = data.mistakes.filter(m => m.resolved);
+    const reviewRow = ([id, p]) => `<article class="study-record"><div><strong>${esc(nameOfChapter(id))}</strong><small>${esc(subName(chapterById(id)?.subject ?? ''))} · ${p.next < day ? 'Overdue since ' : p.next === day ? 'Due ' : 'Review '}${shortDate(p.next)}${p.rating ? ' · ' + p.rating : ''}</small></div><div class="study-actions">${action('plan-review', 'Add to plan', id)}${action('review-date', 'Change date', id, 'quiet')}</div></article>`;
+    return `<div class="page study-page">${heading('RETURN TO WHAT MATTERS', 'Review & mistakes', 'A missed day keeps your work here. It never erases your progress.', action('new-mistake', 'Save a mistake', '', 'primary'))}
+  <section class="study-panel"><div class="section-head"><h2>Revision due</h2><span class="muted">${due.length} ${due.length === 1 ? 'chapter' : 'chapters'}</span></div>${due.length ? `<div class="rows">${due.map(reviewRow).join('')}</div>` : emptyState('Nothing is due right now', 'Complete a chapter revision and choose Easy, Okay or Difficult to build your review rhythm.')}</section>
+  ${future.length ? `<section class="study-panel"><div class="section-head"><h2>Coming up</h2></div><div class="rows">${future.map(reviewRow).join('')}</div></section>` : ''}
+  <section class="study-panel"><div class="section-head"><div><h2>Mistake journal</h2><p>Save what you learned, then try again when you choose.</p></div></div>${open.length ? `<div class="mistake-grid">${open.map(m => `<article class="mistake-card"><span class="subject">${esc(subName(m.subject))}</span><h3>${esc(m.note)}</h3>${m.question ? `<p class="mistake-question">${esc(m.question)}</p>` : ''}${m.correctApproach ? `<details class="mistake-approach"><summary>My correct approach</summary><p>${esc(m.correctApproach)}</p></details>` : ''}<p>${m.chapter ? esc(nameOfChapter(m.chapter)) + ' · ' : ''}${esc(m.category)}${m.source ? ' · ' + esc(m.source) : ''}</p><small>${m.due ? 'Retry ' + shortDate(m.due) : 'No retry date set'} · ${m.retries.length} ${m.retries.length === 1 ? 'retry' : 'retries'} recorded</small><div class="study-actions">${action('retry-mistake', 'Plan a retry', m.id)}${action('record-retry', 'Record retry', m.id, 'quiet')}${action('edit-mistake', 'Edit', m.id, 'quiet')}${action('resolve-mistake', 'I understand it now', m.id, 'quiet')}</div></article>`).join('')}</div>` : emptyState('A place for useful discoveries', 'Add a mistake in your own words. BLOOM will never guess one from a total score.', action('new-mistake', 'Add your first mistake'))}</section>
+  ${done.length ? `<details class="study-panel"><summary>${done.length} understood ${done.length === 1 ? 'mistake' : 'mistakes'}</summary><div class="rows">${done.map(m => `<article class="study-record"><div><strong>${esc(m.note)}</strong><small>${esc(subName(m.subject))} · ${esc(m.category)}</small></div>${action('reopen-mistake', 'Practise again', m.id)}</article>`).join('')}</div></details>` : ''}</div>`;
+}
+function resultCard(r) { return `<article class="result-card"><div class="section-head"><span class="subject">${esc(subName(r.subject))}</span>${action('edit-result', 'Edit', r.id, 'quiet')}</div><h3>${esc(r.title)}</h3><p class="result-score">${r.score}<small> / ${r.max}</small><span>${(r.score / r.max * 100).toFixed(1)}%</span></p><div class="result-meter" aria-label="${(r.score / r.max * 100).toFixed(1)} percent"><span style="transform:scaleX(${r.score / r.max})"></span></div><p>${shortDate(r.day)} · ${r.questions.length ? `${r.questions.length} questions recorded` : 'Total-only result'}</p><small>${r.source === 'checked sheet' ? 'From a checked sheet · reviewed by you' : 'Entered by you'}</small>${r.note ? `<p class="result-note">${esc(r.note)}</p>` : ''}</article>`; }
+function resultsPage(host) {
+    const data = currentData(host.getState()), results = [...data.results].sort((a, b) => b.day.localeCompare(a.day)), evidence = topicEvidence(results), errorEvidence = recordedErrorEvidence(results);
+    const trends = subjects.map(subject => ({ subject, tests: scoreTrend(results, subject.id) })).filter(x => x.tests.length > 1);
+    return `<div class="page study-page">${heading('LEARN FROM YOUR TESTS', 'Test analysis', 'Your examiner’s marks, your observations, a clearer next step.', action('new-result', 'Log a result', '', 'primary'))}<div class="study-upload-band"><div><h3>Already have a checked answer sheet?</h3><p>Read a PDF or photo on this device, then review every mark before saving.</p></div>${action('import-result', 'Upload checked sheet')}</div>
+  ${results.length ? `<section class="result-grid">${results.map(resultCard).join('')}</section>` : emptyState('Your results belong here', 'Log a total score, enter question marks, or upload a checked answer sheet. No results are prefilled.', action('new-result', 'Add a test result'))}
+  <section class="study-panel"><div class="section-head"><h2>Improvement over time</h2></div>${trends.length ? trends.map(({ subject, tests }) => { const first = tests[0], last = tests[tests.length - 1], delta = (last.score / last.max - first.score / first.max) * 100; return `<div class="score-trend"><h3>${esc(subject.title)}</h3><p>${tests.length} recorded tests · ${delta >= 0 ? '+' : ''}${delta.toFixed(1)} percentage points between first and latest</p><div class="trend-bars" role="img" aria-label="Recorded score history for ${esc(subject.title)}">${tests.slice(-10).map(r => `<div><span style="--score:${r.score / r.max * 100}%" title="${esc(r.title)}: ${r.score}/${r.max}"></span><small>${shortDate(r.day)}</small><strong>${Math.round(r.score / r.max * 100)}%</strong></div>`).join('')}</div><small>Tests may differ in coverage and difficulty. This is a recorded score comparison, not a marks prediction.</small></div>`; }).join('') : emptyState('One test is a starting point', 'Log at least two results for the same subject to compare them.')}</section>
+  <section class="study-panel"><div class="section-head"><h2>Error tags you recorded</h2></div>${errorEvidence.length ? `<div class="rows">${errorEvidence.map(x => `<article class="study-record"><strong>${esc(x.category)}</strong><span>${x.questions} questions · ${x.tests} ${x.tests === 1 ? 'test' : 'tests'}</span></article>`).join('')}</div><p class="study-footnote">These patterns come only from the question tags you chose. BLOOM has not inferred additional errors.</p>` : emptyState('No confirmed error pattern yet', 'You can add an error tag to a marked question when you know what happened.')}</section>
+  <section class="study-panel"><div class="section-head"><h2>Chapter evidence</h2></div>${evidence.length ? `<div class="rows">${evidence.map(x => `<article class="study-record"><div><strong>${esc(nameOfChapter(x.chapter))}</strong><small>${x.questions} mapped questions across ${x.tests} ${x.tests === 1 ? 'test' : 'tests'}</small></div><span>${x.score}/${x.max} · ${Math.round(x.score / x.max * 100)}%</span></article>`).join('')}</div><p class="study-footnote">Only questions you mapped to a chapter are included. Small samples do not establish mastery or weakness.</p>` : emptyState('No chapter evidence yet', 'A total-only result can show your score trend. Chapter insights need question marks and chapter mappings you confirm.')}</section></div>`;
+}
+function insightsPage(host) {
+    const state = host.getState(), data = currentData(state), focus = data.sessions.filter(x => x.kind === 'focus');
+    const seconds = focus.reduce((n, x) => n + x.seconds, 0), completed = state.tasks.filter(t => t.done), marked = Object.keys(state.progress).length;
+    const mix = subjects.map(s => ({ s, seconds: focus.filter(x => x.subject === s.id).reduce((n, x) => n + x.seconds, 0) })).filter(x => x.seconds);
+    const counts = errorCategories.map(category => ({ category, count: data.mistakes.filter(m => m.category === category).length })).filter(x => x.count);
+    return `<div class="page study-page">${heading('A PICTURE OF YOUR EFFORT', 'Study insights', 'Only your recorded activity appears here.')}
+  <div class="insight-numbers"><div><strong>${Math.floor(seconds / 3600)}<small>h</small> ${Math.floor(seconds % 3600 / 60)}<small>m</small></strong><span>Actual focused time</span></div><div><strong>${completed.length}</strong><span>Tasks completed</span></div><div><strong>${marked}<small> / ${chapters.length}</small></strong><span>Chapters with your status</span></div><div><strong>${data.results.length}</strong><span>Recorded test results</span></div></div>
+  <div class="study-two-col"><section class="study-panel"><div class="section-head"><h2>Your subject mix</h2></div>${mix.length ? `<div class="subject-mix">${mix.map(x => `<div><div><strong>${esc(x.s.title)}</strong><span>${Math.floor(x.seconds / 60)} min</span></div><span class="mix-track"><i style="transform:scaleX(${x.seconds / seconds})"></i></span></div>`).join('')}</div>` : emptyState('Give your first session a subject', 'Your saved focus sessions will build this picture.')}</section>
+  <section class="study-panel"><div class="section-head"><h2>Patterns you recorded</h2></div>${counts.length ? `<div class="rows">${counts.map(x => `<div class="study-record"><strong>${esc(x.category)}</strong><span>${x.count} saved ${x.count === 1 ? 'mistake' : 'mistakes'}</span></div>`).join('')}</div><p class="study-footnote">These are the tags you selected. BLOOM does not diagnose unrecorded errors.</p>` : emptyState('Notice a pattern at your pace', 'Saved mistake tags will appear here. No mistakes are inferred from scores.')}</section></div>
+  <section class="study-panel"><h2>Your last seven days</h2><div class="week-effort">${Array.from({ length: 7 }, (_, i) => plus(today(), i - 6)).map(d => { const n = focus.filter(x => x.day === d).reduce((n, x) => n + x.seconds, 0), tasks = completed.filter(t => t.finished === d).length; return `<div><small>${labelDay(d, true)}</small><strong>${Math.floor(n / 60)}<span> min</span></strong><p>${tasks} ${tasks === 1 ? 'task' : 'tasks'}</p></div>`; }).join('')}</div><p class="study-footnote">Zero means there is no saved activity for that day. Missed days never remove garden growth.</p></section></div>`;
+}
+export function renderStudyPage(page, host) {
+    if (page === 'focus')
+        return focusPage(host);
+    if (page === 'review')
+        return reviewPage(host);
+    if (page === 'results')
+        return resultsPage(host);
+    if (page === 'insights')
+        return insightsPage(host);
+    return '';
+}
+function displayError(dialog, message) { const error = dialog.querySelector('[data-study-error]'); if (error)
+    error.textContent = message; }
+function read(form, key) { return String(new FormData(form).get(key) ?? '').trim(); }
+function formIn(dialog) { return dialog.querySelector('form'); }
+function focusDialog(host, kind, taskId = '') {
+    const state = host.getState(), data = currentData(state), tasks = state.tasks.filter(t => !t.done && t.day === today());
+    if (data.activeFocus) {
+        host.navigate('focus');
+        host.announce('Your current session is waiting. Finish or discard it before starting another.');
+        return;
+    }
+    const chosen = tasks.find(t => t.id === taskId);
+    const dialog = host.show(kind === 'break' ? 'A little breathing room' : 'Begin a study session', `<form data-study-form="focus"><label>Session purpose<input name="title" maxlength="120" value="${esc(kind === 'break' ? 'Break' : chosen?.title ?? '')}" placeholder="What will you work on?" required></label>${kind === 'focus' ? `<label>From today’s plan<select name="focus-task">${opt('', 'Focus independently')}${tasks.map(t => opt(t.id, t.title, taskId)).join('')}</select></label><div class="form-pair"><label>Subject<select name="subject">${subjectOptions(chosen?.subject)}</select></label><label>Minutes<input name="minutes" type="number" min="1" max="240" value="${chosen?.minutes ?? data.focusMinutes}" required></label></div><label>Chapter<select name="chapter">${chapterOptions(chosen?.subject, chosen?.chapter)}</select></label>` : `<label>Minutes<input name="minutes" type="number" min="1" max="60" value="${data.breakMinutes}" required></label>`}<p class="study-footnote">Your plan’s duration is a starting point. Only elapsed time will be recorded.</p>${errorHtml}${submit(kind === 'break' ? 'Start break' : 'Start studying')}</form>`);
+    const form = formIn(dialog);
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const state = host.getState(), next = structuredClone(state), minutes = Number(read(form, 'minutes')), title = read(form, 'title'), subject = read(form, 'subject'), chapter = read(form, 'chapter'), linkedTask = read(form, 'focus-task');
+        if (state.study.activeFocus) {
+            displayError(dialog, 'Finish or discard the current session first.');
+            return;
+        }
+        if (!title || !Number.isInteger(minutes) || minutes < 1 || minutes > (kind === 'break' ? 60 : 240)) {
+            displayError(dialog, 'Enter a session purpose and a valid number of minutes.');
+            return;
+        }
+        next.study.activeFocus = { id: crypto.randomUUID(), title, subject: subjectById(subject) ? subject : '', chapter: chapterById(chapter)?.subject === subject ? chapter : '', targetSeconds: minutes * 60, elapsedMs: 0, runningSince: Date.now(), kind, ...(linkedTask && state.tasks.some(t => t.id === linkedTask && !t.done) ? { taskId: linkedTask } : {}), startedDay: today() };
+        if (await host.commit(next)) {
+            lastCheckpoint = Date.now();
+            host.navigate('focus');
+            tickTimer(host);
+        }
+    };
+    form.querySelector('[name="focus-task"]')?.addEventListener('change', e => { const task = tasks.find(t => t.id === e.target.value); if (!task)
+        return; form.querySelector('[name="title"]').value = task.title; form.querySelector('[name="minutes"]').value = String(task.minutes); form.querySelector('[name="subject"]').value = task.subject; form.querySelector('[name="chapter"]').innerHTML = chapterOptions(task.subject, task.chapter); });
+}
+export function startTaskFocus(host, id) { focusDialog(host, 'focus', id); }
+async function pauseTimer(host, message = 'Session paused.') {
+    if (checkpoint)
+        await checkpoint;
+    const state = host.getState(), active = state.study.activeFocus;
+    if (!active || active.runningSince === null || timerSaveBusy)
+        return;
+    timerSaveBusy = true;
+    const next = structuredClone(state);
+    next.study.activeFocus = { ...active, elapsedMs: focusElapsed(active), runningSince: null };
+    try {
+        await host.commit(next, message);
+    }
+    finally {
+        timerSaveBusy = false;
+    }
+}
+function tickTimer(host) {
+    const active = host.getState().study.activeFocus;
+    if (!active)
+        return;
+    const elapsed = focusElapsed(active), ratio = elapsed / (active.targetSeconds * 1000), remaining = Math.ceil((active.targetSeconds * 1000 - elapsed) / 1000);
+    const readout = document.querySelector('.timer-readout');
+    if (readout)
+        readout.textContent = timeText(remaining);
+    document.querySelector('.timer-ring')?.style.setProperty('--timer-ratio', String(ratio));
+    if (active.runningSince !== null && remaining <= 0)
+        void pauseTimer(host, 'Session time reached. Save your actual session when you’re ready.');
+    else if (active.runningSince !== null && !document.hidden && !timerSaveBusy && Date.now() - lastCheckpoint >= 15000) {
+        lastCheckpoint = Date.now();
+        timerSaveBusy = true;
+        const next = structuredClone(host.getState());
+        next.study.activeFocus = { ...active, elapsedMs: elapsed, runningSince: Date.now() };
+        checkpoint = host.commit(next, '', false).finally(() => { timerSaveBusy = false; checkpoint = undefined; });
+    }
+}
+async function finishFocus(host) {
+    await pauseTimer(host, '');
+    const current = host.getState().study.activeFocus;
+    if (!current)
+        return;
+    const elapsed = Math.floor(focusElapsed(current) / 1000), isStudy = current.kind === 'focus';
+    if (elapsed < 1) {
+        host.announce('There is no elapsed time to save yet.');
+        return;
+    }
+    const task = current.taskId ? host.getState().tasks.find(t => t.id === current.taskId && !t.done) : undefined;
+    const progress = current.chapter ? host.getState().progress[current.chapter] : undefined;
+    const statusChoices = [['Pending', 'Not started'], ['Learning', 'Learning'], ['Completed', 'Learned'], ['Needs revision', 'Needs revision']];
+    const dialog = host.show(isStudy ? 'A moment to reflect' : 'Save this break', `<form data-study-form="finish"><div class="session-summary"><span>${isStudy ? 'Actual focused time' : 'Actual break time'}</span><strong>${Math.floor(elapsed / 60)}<small>m</small> ${elapsed % 60}<small>s</small></strong><p>${esc(current.title)}</p></div>${isStudy ? `<label>One thing to remember <span class="muted">(optional)</span><textarea name="note" maxlength="2000" rows="2" placeholder="A useful insight, a question, or where to begin next time"></textarea></label>${current.chapter ? `<fieldset class="session-reflection"><legend>How did this chapter feel? <span class="muted">(optional)</span></legend><div class="session-rating">${[...ratings].reverse().map(r => `<label><input type="radio" name="rating" value="${r}"><span>${r}</span></label>`).join('')}</div><label class="checkline"><input type="checkbox" name="revised">I revised previously learned material</label><p class="study-footnote">A rating updates your difficulty. A revision date is recorded only when you confirm you revised.</p><label>Learning status<select name="status">${opt('', 'Keep my current status')}${statusChoices.map(([value, label]) => opt(value, label)).join('')}</select></label><p class="study-footnote">Current status: ${esc(statusChoices.find(([value]) => value === progress?.status)?.[1] ?? progress?.status ?? 'Not recorded')}. Completing a session does not assume chapter mastery.</p></fieldset>` : ''}${task ? `<label class="checkline"><input type="checkbox" name="complete">I finished “${esc(task.title)}”</label>` : ''}` : ''}${errorHtml}${submit(isStudy ? 'Save study session' : 'Save break')}</form>`);
+    const form = formIn(dialog);
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const state = host.getState(), active = state.study.activeFocus;
+        if (!active || active.id !== current.id)
+            return;
+        const next = structuredClone(state), ratingValue = read(form, 'rating'), rating = ratings.includes(ratingValue) ? ratingValue : undefined, statusValue = read(form, 'status'), status = statusChoices.some(([value]) => value === statusValue) ? statusValue : undefined;
+        const revised = new FormData(form).has('revised');
+        if (revised && !rating) {
+            displayError(dialog, 'Choose Easy, Okay or Difficult to suggest your next revision.');
+            return;
+        }
+        if (rating && !status && !next.progress[active.chapter]) {
+            displayError(dialog, 'Choose your learning status so a difficulty rating does not assume what you have learned.');
+            return;
+        }
+        next.study = saveFocusSession(next.study, today(), read(form, 'note'));
+        if (rating) {
+            const saved = next.study.sessions.find(s => s.id === active.id);
+            if (saved)
+                saved.rating = rating;
+        }
+        if (isStudy && active.chapter && (status || rating || revised)) {
+            const old = next.progress[active.chapter];
+            next.progress[active.chapter] = { ...old, status: status ?? old?.status ?? 'Learning', ...(rating ? { rating } : {}), ...(revised && rating ? { last: today(), next: revisionDate(today(), rating) } : {}) };
+            if (revised && rating)
+                next.reviews.push({ chapter: active.chapter, date: today(), rating });
+        }
+        if (isStudy && new FormData(form).has('complete')) {
+            const task = next.tasks.find(t => t.id === active.taskId);
+            if (task && !task.done) {
+                task.done = true;
+                task.finished = today();
+            }
+        }
+        await host.commit(next, isStudy ? 'Session saved. Your actual effort, recorded.' : 'Break saved separately from study time.');
+    };
+}
+function timerSettings(host) { const data = host.getState().study, dialog = host.show('Your session rhythm', `<form><div class="form-pair"><label>Focus minutes<input type="number" name="focus" min="1" max="180" value="${data.focusMinutes}" required></label><label>Break minutes<input type="number" name="break" min="1" max="60" value="${data.breakMinutes}" required></label></div><p class="muted">These are starting presets. You can change them for each session.</p>${errorHtml}${submit('Save presets')}</form>`); const form = formIn(dialog); form.onsubmit = async (e) => { e.preventDefault(); const focus = Number(read(form, 'focus')), br = Number(read(form, 'break')); if (!Number.isInteger(focus) || focus < 1 || focus > 180 || !Number.isInteger(br) || br < 1 || br > 60) {
+    displayError(dialog, 'Choose 1–180 focus minutes and 1–60 break minutes.');
+    return;
+} const next = structuredClone(host.getState()); next.study.focusMinutes = focus; next.study.breakMinutes = br; await host.commit(next, 'Session presets saved.'); }; }
+function planTask(host, title, subject, chapter, reason, mistakeId = '') {
+    const dialog = host.show('Add this to your plan', `<form><label>Study task<input name="title" maxlength="140" value="${esc(title)}" required></label><div class="form-pair"><label>Date<input name="day" type="date" value="${today()}" required></label><label>Time (optional)<input name="time" type="time"></label></div><label>Minutes<input name="minutes" type="number" min="5" max="240" value="25" required></label><p class="muted">${esc(reason)} You choose when it fits; existing tasks stay unchanged.</p>${errorHtml}${submit('Add to plan')}</form>`), form = formIn(dialog);
+    form.onsubmit = async (e) => { e.preventDefault(); const state = host.getState(), next = structuredClone(state), task = { id: crypto.randomUUID(), title: read(form, 'title'), day: read(form, 'day'), time: read(form, 'time'), minutes: Number(read(form, 'minutes')), subject, chapter, priority: 'Normal', due: '', done: false, reason }; const error = conflict(state, task); if (error) {
+        displayError(dialog, error);
+        return;
+    } next.tasks.push(task); if (mistakeId) {
+        const m = next.study.mistakes.find(m => m.id === mistakeId);
+        if (m)
+            m.due = task.day;
+    } await host.commit(next, 'Study task added to your plan.'); };
+}
+function editReviewDate(host, id) { const p = host.getState().progress[id]; if (!p)
+    return; const dialog = host.show('Change the next review', `<form><p class="review-task">${esc(nameOfChapter(id))}</p><label>Next review<input name="next" type="date" value="${p.next ?? today()}"></label><small class="muted">Clear the date to remove this reminder. Your review history stays intact.</small>${errorHtml}${submit('Save review date')}</form>`), form = formIn(dialog); form.onsubmit = async (e) => { e.preventDefault(); const next = structuredClone(host.getState()); next.progress[id] = { ...next.progress[id], next: read(form, 'next') || undefined }; await host.commit(next, 'Review date updated.'); }; }
+function mistakeForm(host, id = '') {
+    const old = host.getState().study.mistakes.find(m => m.id === id);
+    const dialog = host.show(old ? 'Edit your mistake note' : 'What did you learn?', `<form data-study-form="mistake"><label>In your own words<textarea name="note" maxlength="2000" rows="3" placeholder="What went wrong, and what will you try differently?" required>${esc(old?.note ?? '')}</textarea></label><label>Question or problem <span class="muted">(optional)</span><textarea name="question" maxlength="4000" rows="2">${esc(old?.question ?? '')}</textarea></label><label>Correct approach <span class="muted">(optional)</span><textarea name="correctApproach" maxlength="4000" rows="2" placeholder="What will help you solve it next time?">${esc(old?.correctApproach ?? '')}</textarea></label><div class="form-pair"><label>Subject<select name="subject" required>${subjectOptions(old?.subject)}</select></label><label>Kind<select name="category">${errorCategories.map(c => opt(c, c, old?.category ?? 'Other')).join('')}</select></label></div><label>Chapter (if known)<select name="chapter">${chapterOptions(old?.subject, old?.chapter)}</select></label><div class="form-pair"><label>Retry date (optional)<input name="due" type="date" value="${old?.due ?? ''}"></label><label>Source test or note<input name="source" maxlength="120" value="${esc(old?.source ?? '')}"></label></div>${errorHtml}${submit('Save mistake', old ? action('delete-mistake', 'Delete', old.id, 'danger') : '')}</form>`), form = formIn(dialog);
+    form.onsubmit = async (e) => { e.preventDefault(); const sub = read(form, 'subject'), chapter = read(form, 'chapter'), note = read(form, 'note'), category = read(form, 'category'); if (!note || !subjectById(sub) || !errorCategories.includes(category)) {
+        displayError(dialog, 'Add a note, subject and category.');
+        return;
+    } const next = structuredClone(host.getState()), item = { id: old?.id ?? crypto.randomUUID(), note, subject: sub, chapter: chapterById(chapter)?.subject === sub ? chapter : '', category: category, source: read(form, 'source'), question: read(form, 'question'), correctApproach: read(form, 'correctApproach'), due: read(form, 'due'), resolved: old?.resolved ?? false, retries: old?.retries ?? [] }, index = next.study.mistakes.findIndex(m => m.id === item.id); if (index < 0)
+        next.study.mistakes.push(item);
+    else
+        next.study.mistakes[index] = item; await host.commit(next, 'Mistake note saved.'); };
+}
+function questionRow(subject, q) {
+    return `<fieldset class="question-entry" data-question="${q?.id ?? crypto.randomUUID()}"><legend>Question marks</legend><div class="question-marks"><label>Question<input data-q="label" maxlength="20" value="${esc(q?.label ?? '')}" placeholder="e.g. 1(a)" required></label><label>Marks<input data-q="score" type="number" min="0" step="0.25" value="${q?.score ?? ''}" required></label><label>Out of<input data-q="max" type="number" min="0.25" step="0.25" value="${q?.max ?? ''}" required></label>${action('remove-question', 'Remove', '', 'quiet')}</div><label>Chapter you confirm<select data-q="chapter">${chapterOptions(subject, q?.chapter)}</select></label><div class="form-pair"><label>Error tag (optional)<select data-q="category">${opt('', 'No error tag', q?.category)}${errorCategories.map(c => opt(c, c, q?.category)).join('')}</select></label><label>Your observation<input data-q="note" maxlength="400" value="${esc(q?.note ?? '')}"></label></div></fieldset>`;
+}
+function parseCheckedMarks(text) {
+    const total = text.match(/\b(?:total|grand\s+total|marks\s+obtained)\s*[:=–-]?\s*(\d+(?:\.\d+)?)\s*(?:\/|out\s+of)\s*(\d+(?:\.\d+)?)/i);
+    const questions = [];
+    for (const line of text.split('\n')) {
+        const m = line.match(/^\s*(?:Q(?:uestion)?\s*\.?\s*)([\w().-]+)\s*[:=–-]?\s*(\d+(?:\.\d+)?)\s*(?:\/|out\s+of)\s*(\d+(?:\.\d+)?)\s*$/i);
+        if (m)
+            questions.push({ id: crypto.randomUUID(), label: m[1], score: Number(m[2]), max: Number(m[3]), chapter: '', category: '', note: '' });
+    }
+    return { score: total ? Number(total[1]) : undefined, max: total ? Number(total[2]) : undefined, questions };
+}
+let resultDraft;
+function resultForm(host, id = '', draft) {
+    const old = host.getState().study.results.find(r => r.id === id), seed = old ?? draft?.seed, subject = seed?.subject ?? '';
+    resultDraft = draft ?? { source: old?.source ?? 'manual', sourceName: old?.sourceName };
+    const source = resultDraft;
+    const dialog = host.show(old ? 'Edit test result' : 'Log your checked marks', `<form data-study-form="result" data-result-id="${esc(old?.id ?? '')}"><label>Test name<input name="title" maxlength="120" value="${esc(seed?.title ?? '')}" required></label><div class="form-pair"><label>Subject<select name="result-subject" required>${subjectOptions(subject)}</select></label><label>Date<input name="day" type="date" value="${seed?.day ?? today()}" required></label></div><div class="form-pair"><label>Total marks<input name="score" type="number" min="0" step="0.25" value="${seed?.score ?? ''}" required></label><label>Out of<input name="max" type="number" min="0.25" step="0.25" value="${seed?.max ?? ''}" required></label></div><label>Your observations<textarea name="note" maxlength="2000" rows="2">${esc(seed?.note ?? '')}</textarea></label>
+  <details ${(seed?.questions?.length) ? 'open' : ''}><summary>Question-wise analysis</summary><p class="muted">Enter all marked questions so they add up to the total. Map chapters only when you know them.</p><div data-question-list>${seed?.questions?.map(q => questionRow(subject, q)).join('') ?? ''}</div>${action('add-question', 'Add a question')}<p class="study-footnote">Total-only results show score trends. They cannot reveal which chapters or error types need work.</p></details>${source?.source === 'checked sheet' ? `<p class="source-note">Checked sheet: ${esc(source.sourceName)}. Original files are not saved.</p><label class="checkline"><input type="checkbox" name="reviewed" required>I checked these values against the examiner’s marks.</label>` : ''}${errorHtml}${submit(old ? 'Save changes' : 'Save result', old ? action('delete-result', 'Delete', old.id, 'danger') : '')}</form>`), form = formIn(dialog);
+    form.onsubmit = async (e) => { e.preventDefault(); const subject = read(form, 'result-subject'), questions = [...form.querySelectorAll('[data-question]')].map(row => { const val = (key) => (row.querySelector(`[data-q="${key}"]`)?.value ?? '').trim(); return { id: row.dataset.question, label: val('label'), score: Number(val('score')), max: Number(val('max')), chapter: chapterById(val('chapter'))?.subject === subject ? val('chapter') : '', category: val('category'), note: val('note') }; }); const item = { id: old?.id ?? crypto.randomUUID(), title: read(form, 'title'), subject, day: read(form, 'day'), score: Number(read(form, 'score')), max: Number(read(form, 'max')), questions, note: read(form, 'note'), source: source?.source ?? 'manual', sourceName: source?.sourceName }; const error = resultError(item); if (error || !subjectById(subject)) {
+        displayError(dialog, error || 'Choose a subject.');
+        return;
+    } const next = structuredClone(host.getState()), index = next.study.results.findIndex(r => r.id === item.id); if (index < 0)
+        next.study.results.push(item);
+    else
+        next.study.results[index] = item; await host.commit(next, 'Test result saved. Your marks are unchanged.'); };
+}
+function importResult(host) {
+    let generation = 0;
+    const dialog = host.show('Read your checked answer sheet', `<div class="study-extraction"><p>Choose the paper after your teacher has marked it. BLOOM reads the file on this device and asks you to review the extracted text.</p><label class="button outline file-button">Choose PDF or photo<input data-study-sheet type="file" accept="application/pdf,image/png,image/jpeg,image/webp"></label><p class="muted" data-sheet-progress aria-live="polite">PDF, JPG, PNG or WebP. No original is stored.</p><label>Extracted text<textarea data-sheet-text rows="9" placeholder="Extracted marks will appear here. You can correct the text or enter marks manually."></textarea></label><div class="study-actions">${action('sheet-review', 'Review marks', '', 'primary')}${action('sheet-manual', 'Enter marks myself')}</div></div>`);
+    dialog.querySelector('[data-study-sheet]').onchange = async (e) => { const file = e.target.files?.[0]; if (!file)
+        return; const current = ++generation, progress = dialog.querySelector('[data-sheet-progress]'); const review = dialog.querySelector('[data-study-action="sheet-review"]'); review.disabled = true; try {
+        const text = await extractDocument(file, message => { if (current === generation && dialog.open)
+            progress.textContent = message; });
+        if (current !== generation || !dialog.open)
+            return;
+        dialog.querySelector('[data-sheet-text]').value = text;
+        dialog.dataset.sheetName = file.name;
+        progress.textContent = 'Read through the text and correct any extraction errors. Nothing has been saved.';
+    }
+    catch (error) {
+        if (dialog.open)
+            progress.textContent = error instanceof Error ? error.message : 'Could not read this file. Enter the checked marks manually.';
+    }
+    finally {
+        if (dialog.open)
+            review.disabled = false;
+    } };
+    dialog.querySelector('[data-study-action="sheet-review"]').onclick = () => { generation++; const text = dialog.querySelector('[data-sheet-text]').value, marks = parseCheckedMarks(text); resultForm(host, '', { source: 'checked sheet', sourceName: dialog.dataset.sheetName ?? 'Reviewed text', seed: { score: marks.score, max: marks.max, questions: marks.questions } }); };
+    dialog.querySelector('[data-study-action="sheet-manual"]').onclick = () => { generation++; resultForm(host); };
+}
+function deleteItem(host, kind, id) { const state = host.getState(), item = kind === 'result' ? state.study.results.find(r => r.id === id) : state.study.mistakes.find(m => m.id === id); if (!item)
+    return; const dialog = host.show(`Delete this ${kind}?`, `<form><p>This removes the ${kind === 'result' ? 'recorded test result' : 'saved mistake note'} from this device.</p>${errorHtml}${submit('Delete')}</form>`); formIn(dialog).onsubmit = async (e) => { e.preventDefault(); const next = structuredClone(host.getState()); if (kind === 'result')
+    next.study.results = next.study.results.filter(r => r.id !== id);
+else
+    next.study.mistakes = next.study.mistakes.filter(m => m.id !== id); await host.commit(next, kind === 'result' ? 'Result deleted.' : 'Mistake note deleted.'); }; }
+export function initStudyTools(host) {
+    activeHost = host;
+    if (interval === undefined)
+        interval = window.setInterval(() => { if (activeHost)
+            tickTimer(activeHost); }, 250);
+    document.addEventListener('visibilitychange', () => { if (document.hidden)
+        void pauseTimer(host, 'Focus paused while BLOOM is hidden.'); });
+    window.addEventListener('pagehide', () => void pauseTimer(host, ''));
+    document.addEventListener('change', e => {
+        const input = e.target, form = input.closest('[data-study-form]');
+        if (!form)
+            return;
+        if (input.name === 'subject') {
+            const chapter = form.querySelector('[name="chapter"]');
+            if (chapter)
+                chapter.innerHTML = chapterOptions(input.value);
+        }
+        if (input.name === 'result-subject')
+            form.querySelectorAll('[data-q="chapter"]').forEach(select => { select.innerHTML = chapterOptions(input.value); });
+    });
+    document.addEventListener('click', async (e) => {
+        const button = e.target.closest('[data-study-action]');
+        if (!button)
+            return;
+        const a = button.dataset.studyAction, id = button.dataset.value ?? '';
+        if (a === 'start-focus')
+            focusDialog(host, 'focus');
+        else if (a === 'task-focus')
+            focusDialog(host, 'focus', id);
+        else if (a === 'start-break')
+            focusDialog(host, 'break');
+        else if (a === 'pause-focus')
+            await pauseTimer(host);
+        else if (a === 'resume-focus') {
+            const next = structuredClone(host.getState()), active = next.study.activeFocus;
+            if (!active)
+                return;
+            if (focusElapsed(active) >= active.targetSeconds * 1000) {
+                host.announce('This session has reached its time. Save it or start a new session.');
+                return;
+            }
+            active.runningSince = Date.now();
+            await host.commit(next);
+        }
+        else if (a === 'finish-focus')
+            await finishFocus(host);
+        else if (a === 'discard-focus') {
+            const dialog = host.show('Discard this session?', `<form><p>This session’s elapsed time will not be saved.</p>${submit('Discard session')}</form>`);
+            formIn(dialog).onsubmit = async (e) => { e.preventDefault(); const next = structuredClone(host.getState()); next.study.activeFocus = null; await host.commit(next, 'Session discarded.'); };
+        }
+        else if (a === 'timer-settings')
+            timerSettings(host);
+        else if (a === 'new-mistake')
+            mistakeForm(host);
+        else if (a === 'edit-mistake')
+            mistakeForm(host, id);
+        else if (a === 'resolve-mistake' || a === 'reopen-mistake') {
+            const next = structuredClone(host.getState()), m = next.study.mistakes.find(m => m.id === id);
+            if (m) {
+                m.resolved = a === 'resolve-mistake';
+                await host.commit(next, m.resolved ? 'Understanding recorded.' : 'Mistake reopened for practice.');
+            }
+        }
+        else if (a === 'record-retry') {
+            const old = host.getState().study.mistakes.find(m => m.id === id);
+            if (old) {
+                const dialog = host.show('How did your retry go?', `<form><p>${esc(old.note)}</p><label>How it felt<select name="outcome"><option value="practice">I tried again; keep practising</option><option value="clear">I tried again and understand it now</option></select></label>${errorHtml}${submit('Record this retry')}</form>`);
+                formIn(dialog).onsubmit = async (e) => { e.preventDefault(); const next = structuredClone(host.getState()), m = next.study.mistakes.find(m => m.id === id); if (m) {
+                    m.retries.push(today());
+                    m.resolved = read(formIn(dialog), 'outcome') === 'clear';
+                    await host.commit(next, 'Retry recorded.');
+                } };
+            }
+        }
+        else if (a === 'retry-mistake') {
+            const m = host.getState().study.mistakes.find(x => x.id === id);
+            if (m)
+                planTask(host, 'Retry: ' + m.note.slice(0, 100), m.subject, m.chapter, 'Retry a mistake you saved.', m.id);
+        }
+        else if (a === 'review-date')
+            editReviewDate(host, id);
+        else if (a === 'plan-review') {
+            const c = chapterById(id);
+            if (c)
+                planTask(host, 'Review ' + c.title, c.subject, c.id, 'Your next revision is due.');
+        }
+        else if (a === 'new-result')
+            resultForm(host);
+        else if (a === 'edit-result')
+            resultForm(host, id);
+        else if (a === 'import-result')
+            importResult(host);
+        else if (a === 'delete-result')
+            deleteItem(host, 'result', id);
+        else if (a === 'delete-mistake')
+            deleteItem(host, 'mistake', id);
+        else if (a === 'add-question') {
+            const form = button.closest('form');
+            if (form)
+                form.querySelector('[data-question-list]').insertAdjacentHTML('beforeend', questionRow(form.querySelector('[name="result-subject"]').value));
+        }
+        else if (a === 'remove-question')
+            button.closest('[data-question]')?.remove();
+    });
+}

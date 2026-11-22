@@ -1,31 +1,220 @@
-:root{--motion-press:95ms;--motion-control:220ms;--motion-page:420ms;--motion-dialog:360ms;--motion-exit:160ms;--motion-ease:cubic-bezier(.2,.75,.3,1)}
-.motion-ready #content>.page{animation:none}
-.motion-ready .sidebar nav{position:relative;isolation:isolate}
-.motion-nav-indicator{position:absolute;z-index:-1;border-radius:7px;background:var(--blush);border:1px solid #e7d4dc;pointer-events:none;transform-origin:top left}
-.motion-ready .sidebar nav.has-motion-indicator a[aria-current]{background:transparent;border-color:transparent}
-.motion-ready .sidebar nav.has-motion-indicator a{transition:color var(--motion-control) var(--motion-ease),background var(--motion-control) var(--motion-ease)}
-.motion-ready :is(.button,.tool,.segments button,.subject-tabs button){transition:background var(--motion-control) var(--motion-ease),color var(--motion-control) var(--motion-ease),border-color var(--motion-control) var(--motion-ease)}
-.motion-ready :is(.button,.tool):active{transform:none}
-.motion-ready .switch>span:last-child::after{transition:transform var(--motion-control) cubic-bezier(.2,.8,.25,1.08)}
-.motion-ready :is(input:not([type=checkbox]):not([type=radio]),select,textarea){transition:border-color 160ms var(--motion-ease),box-shadow 160ms var(--motion-ease),background-color 160ms var(--motion-ease)}
-.motion-ready :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--rose);box-shadow:0 0 0 3px #75445b0b}
-.motion-ready .task-row.done .tool{animation:none}
-.motion-ready .task-row.just-done .tool{animation:motion-complete-check 390ms var(--motion-ease) both;color:var(--green)}
-.motion-ready .task-row.just-done .tool svg{stroke-dasharray:64;stroke-dashoffset:0;animation:motion-check-stroke 360ms var(--motion-ease) both}
-.motion-ready dialog::backdrop{animation:motion-scrim-in 180ms var(--motion-ease) both}
-.motion-ready #notice:not(:empty){animation:motion-notice-in 230ms var(--motion-ease) both}
-.motion-ready .form-error:not(:empty){animation:motion-feedback-in 180ms var(--motion-ease) both}
-.motion-row-ghost{position:fixed!important;z-index:5;pointer-events:none!important;margin:0!important;background:var(--paper);overflow:hidden;contain:layout paint}
-.motion-page-ghost{position:fixed!important;z-index:3;pointer-events:none!important;margin:0!important;background:var(--paper);overflow:hidden;contain:layout paint}
-.motion-paused :is(.focus-art i,.focus-art img,.boot-mark i,.boot-progress::after){animation-play-state:paused!important}
-.motion-ready .focus-art img{transform-origin:bottom center;animation:motion-botanical-breathe 12s ease-in-out infinite alternate}
-.motion-ready .focus-art i{animation-timing-function:cubic-bezier(.35,.05,.65,.95)}
-@keyframes motion-complete-check{0%{transform:scale(.75);opacity:.5}58%{transform:scale(1.07);opacity:1}100%{transform:scale(1)}}
-@keyframes motion-check-stroke{from{stroke-dashoffset:64}to{stroke-dashoffset:0}}
-@keyframes motion-scrim-in{from{opacity:0}to{opacity:1}}
-@keyframes motion-notice-in{from{opacity:0;transform:translate(-50%,6px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-@keyframes motion-feedback-in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
-@keyframes motion-botanical-breathe{from{transform:rotate(-.2deg) scale(1.008)}to{transform:rotate(.3deg) scale(1.018)}}
-@media(hover:hover){.motion-ready .outline:hover{border-color:#c8b5bf}.motion-ready .task-row:hover,.motion-ready .idea:hover{background:#75445b04}}
-@media(prefers-reduced-motion:reduce){.motion-ready *,.motion-ready *::before,.motion-ready *::after{animation:none!important;transition:none!important}.motion-nav-indicator{transform:none!important}.motion-ready .focus-art img{transform:none}}
-.reduce :is(.motion-nav-indicator,.focus-art img){animation:none!important;transform:none!important}
+/**
+ * BLOOM - Motion Design & Spring Physics Stylesheet
+ * Fluid Interruptible Apple Physics & Reduced Motion Accessibility
+ */
+
+:root {
+  --motion-press: 95ms;
+  --motion-control: 220ms;
+  --motion-page: 420ms;
+  --motion-dialog: 360ms;
+  --motion-exit: 160ms;
+  --motion-ease: cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+
+.motion-ready #content > .page {
+  animation: none;
+}
+
+.motion-ready .sidebar nav {
+  position: relative;
+  isolation: isolate;
+}
+
+.motion-nav-indicator {
+  position: absolute;
+  z-index: -1;
+  border-radius: 7px;
+  background: var(--blush);
+  border: 1px solid #e7d4dc;
+  pointer-events: none;
+  transform-origin: top left;
+}
+
+.motion-ready .sidebar nav.has-motion-indicator a[aria-current] {
+  background: transparent;
+  border-color: transparent;
+}
+
+.motion-ready .sidebar nav.has-motion-indicator a {
+  transition: color var(--motion-control) var(--motion-ease),
+    background var(--motion-control) var(--motion-ease);
+}
+
+.motion-ready :is(.button, .tool, .segments button, .subject-tabs button) {
+  transition: background var(--motion-control) var(--motion-ease),
+    color var(--motion-control) var(--motion-ease),
+    border-color var(--motion-control) var(--motion-ease);
+}
+
+.motion-ready :is(.button, .tool):active {
+  transform: none;
+}
+
+.motion-ready .switch > span:last-child::after {
+  transition: transform var(--motion-control) cubic-bezier(0.2, 0.8, 0.25, 1.08);
+}
+
+.motion-ready :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  transition: border-color 160ms var(--motion-ease),
+    box-shadow 160ms var(--motion-ease),
+    background-color 160ms var(--motion-ease);
+}
+
+.motion-ready :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(117, 68, 91, 0.12);
+}
+
+.motion-ready .task-row.done .tool {
+  animation: none;
+}
+
+.motion-ready .task-row.just-done .tool {
+  animation: motion-complete-check 390ms var(--motion-ease) both;
+  color: var(--green);
+}
+
+.motion-ready .task-row.just-done .tool svg {
+  stroke-dasharray: 64;
+  stroke-dashoffset: 0;
+  animation: motion-check-stroke 360ms var(--motion-ease) both;
+}
+
+.motion-ready dialog::backdrop {
+  animation: motion-scrim-in 180ms var(--motion-ease) both;
+}
+
+.motion-ready #notice:not(:empty) {
+  animation: motion-notice-in 230ms var(--motion-ease) both;
+}
+
+.motion-ready .form-error:not(:empty) {
+  animation: motion-feedback-in 180ms var(--motion-ease) both;
+}
+
+.motion-row-ghost {
+  position: fixed !important;
+  z-index: 5;
+  pointer-events: none !important;
+  margin: 0 !important;
+  background: var(--paper);
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.motion-page-ghost {
+  position: fixed !important;
+  z-index: 3;
+  pointer-events: none !important;
+  margin: 0 !important;
+  background: var(--paper);
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.motion-paused :is(.focus-art i, .focus-art img, .boot-mark i, .boot-progress::after) {
+  animation-play-state: paused !important;
+}
+
+.motion-ready .focus-art img {
+  transform-origin: bottom center;
+  animation: motion-botanical-breathe 12s ease-in-out infinite alternate;
+}
+
+.motion-ready .focus-art i {
+  animation-timing-function: cubic-bezier(0.35, 0.05, 0.65, 0.95);
+}
+
+@keyframes motion-complete-check {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.5;
+  }
+  58% {
+    transform: scale(1.07);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes motion-check-stroke {
+  from {
+    stroke-dashoffset: 64;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes motion-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes motion-notice-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes motion-feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes motion-botanical-breathe {
+  from {
+    transform: rotate(-0.2deg) scale(1.008);
+  }
+  to {
+    transform: rotate(0.3deg) scale(1.018);
+  }
+}
+
+@media (hover: hover) {
+  .motion-ready .outline:hover {
+    border-color: #c8b5bf;
+  }
+  .motion-ready .task-row:hover,
+  .motion-ready .idea:hover {
+    background: rgba(117, 68, 91, 0.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-ready *,
+  .motion-ready *::before,
+  .motion-ready *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .motion-nav-indicator {
+    transform: none !important;
+  }
+  .motion-ready .focus-art img {
+    transform: none;
+  }
+}
+
+.reduce :is(.motion-nav-indicator, .focus-art img) {
+  animation: none !important;
+  transform: none !important;
+}
