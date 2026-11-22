@@ -26,22 +26,43 @@
   <link rel="stylesheet" href="./onboarding.css">
   <link rel="stylesheet" href="./design-system.css">
   <script>
-    // Permanently eradicate any floating dock or bottom timer pill
+    // Permanently and aggressively eradicate any floating dock, bottom timer pill, or stale cache
     (function() {
-      function purgeDock() {
-        var targets = document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"], #dock-expand-btn, #dock-minimize-btn');
+      function killDock() {
+        var targets = document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"], #dock-expand-btn, #dock-minimize-btn, [class*="focus-dock"]');
         for (var i = 0; i < targets.length; i++) {
           targets[i].remove();
         }
+        var all = document.querySelectorAll('body > div, body > aside, body > section');
+        for (var j = 0; j < all.length; j++) {
+          var el = all[j];
+          if (el.id === 'app' || el.id === 'dialog' || el.id === 'tour-ui' || el.id === 'notice') continue;
+          var t = el.innerText || '';
+          if (t.includes('25:00') || t.includes('Ambient:') || t.includes('Search ⌘K')) {
+            el.remove();
+          }
+        }
       }
-      purgeDock();
+      killDock();
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', purgeDock);
+        document.addEventListener('DOMContentLoaded', killDock);
       }
-      window.addEventListener('load', purgeDock);
+      window.addEventListener('load', killDock);
+      setInterval(killDock, 150);
+
+      // Force unregister all service workers and wipe all caches
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
-          for (var r of regs) r.update();
+          for (var i = 0; i < regs.length; i++) {
+            regs[i].unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          for (var i = 0; i < keys.length; i++) {
+            caches.delete(keys[i]);
+          }
         });
       }
     })();

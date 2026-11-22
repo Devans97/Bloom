@@ -22,7 +22,6 @@ import { EnglishStudioUI } from './english-studio-ui.js';
 import { PEStudioUI } from './pe-studio-ui.js';
 import { calculateBoardReadiness, getDailyBoardBoostQuestions, cbseHighYieldPresets } from './performance-engine.js';
 import { CommandPalette } from './command-palette.js';
-import { FocusDock } from './focus-dock.js';
 const app = document.querySelector('#app');
 const modal = document.querySelector('#dialog');
 const notice = document.querySelector('#notice');
@@ -782,7 +781,6 @@ initLifeTools(host);
 initVault(host);
 initMotion();
 CommandPalette.init(route, () => Boolean(state.onboarding?.completed));
-const focusDock = FocusDock.init(() => CommandPalette.init(route, () => Boolean(state.onboarding?.completed)).open());
 initOnboarding(host, () => { route('today'); date = today(); planDialog(); });
 function mountStudioIfActive() {
     const mount = document.querySelector('#studio-mount-root');
@@ -817,7 +815,6 @@ function motion() {
 function render() {
     const previous = captureLayout();
     const isOnboarding = !state.onboarding?.completed;
-    focusDock.setVisible(false);
     document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"]').forEach(el => el.remove());
     app.innerHTML = !isOnboarding ? shell((pages[page] ?? todayPage)()) : renderOnboarding(host);
     document.documentElement.classList.toggle('dark', state.darkMode);

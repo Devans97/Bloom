@@ -22274,64 +22274,6 @@ var CommandPalette = class _CommandPalette {
   }
 };
 
-// src/focus-dock.ts
-var FocusDock = class _FocusDock {
-  static instance = null;
-  container = null;
-  timerSeconds = 25 * 60;
-  timerTotal = 25 * 60;
-  isTimerRunning = false;
-  timerInterval = null;
-  activeSoundscape = "none";
-  isMinimized = false;
-  isVisible = false;
-  onOpenPalette;
-  constructor(onOpenPalette) {
-    this.onOpenPalette = onOpenPalette;
-    this.setupDOM();
-  }
-  static init(onOpenPalette) {
-    if (!_FocusDock.instance) {
-      _FocusDock.instance = new _FocusDock(onOpenPalette);
-    }
-    return _FocusDock.instance;
-  }
-  setVisible(visible2) {
-    this.isVisible = false;
-    if (typeof document !== "undefined") {
-      document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"]').forEach((el) => el.remove());
-    }
-  }
-  setupDOM() {
-    this.container = null;
-    if (typeof document !== "undefined") {
-      const purge = () => {
-        document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"]').forEach((el) => el.remove());
-      };
-      purge();
-      document.addEventListener("DOMContentLoaded", purge);
-      window.addEventListener("load", purge);
-    }
-  }
-  render() {
-    this.container = null;
-    if (typeof document !== "undefined") {
-      document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"]').forEach((el) => el.remove());
-    }
-  }
-  startTimer() {
-  }
-  pauseTimer() {
-  }
-  setSoundscape(_type) {
-  }
-  formatTime(secs) {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }
-};
-
 // src/app.ts
 var app = document.querySelector("#app");
 var modal = document.querySelector("#dialog");
@@ -23081,7 +23023,6 @@ initLifeTools(host2);
 initVault(host2);
 initMotion();
 CommandPalette.init(route, () => Boolean(state.onboarding?.completed));
-var focusDock = FocusDock.init(() => CommandPalette.init(route, () => Boolean(state.onboarding?.completed)).open());
 initOnboarding(host2, () => {
   route("today");
   date = today();
@@ -23109,7 +23050,6 @@ function motion() {
 function render() {
   const previous = captureLayout();
   const isOnboarding = !state.onboarding?.completed;
-  focusDock.setVisible(false);
   document.querySelectorAll('#bloom-focus-dock, .focus-dock, [id*="focus-dock"], [id*="dock-timer"]').forEach((el) => el.remove());
   app.innerHTML = !isOnboarding ? shell((pages[page] ?? todayPage)()) : renderOnboarding(host2);
   document.documentElement.classList.toggle("dark", state.darkMode);
