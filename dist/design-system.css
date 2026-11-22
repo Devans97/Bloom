@@ -282,14 +282,14 @@ input[type=checkbox],input[type=radio]{accent-color:#a74f70}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   .sidebar,.topbar,.dashboard-garden,.focus-band,.day-pulse,.today-page .today-plan,.today-page .academic-glance,.page>.planner-availability,.page>.prep-banner,.page>.import-banner,.page>.board-list,.page>.vault-panel,.study-panel,.onboarding-card,dialog,.tour-card,.welcome-card,.context-tip{background:var(--glass-strong)}
 }
-@media(max-width:1000px){
+@media(max-width:1180px){
   .layout{grid-template-columns:190px minmax(0,1fr)}
   .sidebar{padding-inline:12px}
   .topbar,.page{padding-inline:clamp(19px,3vw,32px)}
   .day-pulse{grid-template-columns:minmax(0,1.5fr) repeat(2,minmax(110px,.6fr));gap:13px;padding:17px}
   .dashboard-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 }
-@media(max-width:780px){
+@media(max-width:960px){
   .layout{display:block}
   .sidebar{position:fixed;inset:auto 0 max(6px,env(safe-area-inset-bottom));height:auto;width:100%;border:0;background:transparent;padding:0 12px;pointer-events:none}
   .sidebar nav{pointer-events:auto;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(58px,1fr);grid-template-columns:none;gap:2px;width:min(100%,720px);max-width:100%;margin:auto;padding:5px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;border:1px solid var(--glass-edge);border-radius:23px;background:rgb(255 249 250 / 78%);box-shadow:0 10px 34px rgb(72 43 59 / 15%),inset 0 1px 0 #fff;backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}

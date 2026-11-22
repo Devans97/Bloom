@@ -34,7 +34,7 @@ export class DerivationLabUI {
               <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Derivation & Theorem Studio</h1>
               <p style="margin: 6px 0 0 0; font-size: 15px; opacity: 0.9; max-width: 680px;">Master all 20 essential Physics derivations and 10 core Mathematics proofs with strict step-marking criteria, diagrams, and recall training.</p>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.15); padding: 6px 8px; border-radius: 12px; backdrop-filter: blur(8px);">
+            <div class="studio-filter-bar" style="display: flex; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.15); padding: 6px 8px; border-radius: 12px; backdrop-filter: blur(8px); overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%;">
               <button id="btn-toggle-physics" style="padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isCurrentMath ? 'background: #ffffff; color: #1e3a8a; box-shadow: 0 4px 6px rgba(0,0,0,0.1);' : 'background: transparent; color: #ffffff;'}">Physics (042)</button>
               <button id="btn-toggle-math" style="padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isCurrentMath ? 'background: #ffffff; color: #1e3a8a; box-shadow: 0 4px 6px rgba(0,0,0,0.1);' : 'background: transparent; color: #ffffff;'}">Mathematics (041)</button>
             </div>

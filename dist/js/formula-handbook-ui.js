@@ -26,7 +26,7 @@ export class FormulaHandbookUI {
             </div>
 
             <!-- Subject Filter Pills -->
-            <div style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.1); padding: 6px; border-radius: 12px;">
+            <div class="studio-filter-bar" style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.1); padding: 6px; border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%;">
               ${this.renderSubjectBtn('all', 'All Subjects')}
               ${this.renderSubjectBtn('physics', 'Physics')}
               ${this.renderSubjectBtn('chemistry', 'Chemistry')}
