@@ -5166,10 +5166,86 @@ function rangeFields(kind, ranges) {
 }
 function preparationFields(state2) {
   const list = chapters.filter((chapter) => chapter.subject === selectedSubject), recorded = list.filter((chapter) => state2.progress[chapter.id]).length;
-  return `<div class="onboarding-preparation"><div class="onboarding-subject-tabs" aria-label="Choose a subject">${subjects.map((subject3) => `<button type="button" data-onboarding="subject" data-value="${subject3.id}" aria-pressed="${selectedSubject === subject3.id}">${esc(subject3.title)}</button>`).join("")}</div><div class="onboarding-selection-head"><span>${recorded} of ${list.length} chapters marked</span>${button2("select-all", selection.size === list.length ? "Clear selection" : "Select all")}</div><div class="onboarding-bulk"><label><span class="sr">Status for selected chapters</span><select name="bulkStatus">${option("", "Choose a learning status")}${learningStates.map(([value, label2]) => option(value, label2)).join("")}</select></label><label><span class="sr">Difficulty for selected chapters</span><select name="bulkRating">${option("", "Difficulty (optional)")}${["Easy", "Okay", "Difficult"].map((value) => option(value, value)).join("")}</select></label><button type="button" class="button primary" data-onboarding="apply-status"${selection.size ? "" : " disabled"}>Apply to ${selection.size}</button></div><div class="onboarding-chapters">${list.map((chapter) => {
-    const progress2 = state2.progress[chapter.id], label2 = progress2 ? learningStates.find(([value]) => value === progress2.status)?.[1] ?? progress2.status : "Not yet marked";
-    return `<label class="onboarding-chapter"><input type="checkbox" data-onboarding-chapter="${chapter.id}"${checked(selection.has(chapter.id))}><span>${esc(chapter.title)}</span><small>${esc(label2)}${progress2?.rating ? " \xB7 " + progress2.rating : ""}</small></label>`;
-  }).join("")}</div><p class="onboarding-help">Mark a few chapters you know about. Unmarked chapters stay unknown. A difficulty rating is separate from your learning status.</p></div>`;
+  const subCount = (subId) => {
+    const sc = chapters.filter((c) => c.subject === subId), marked = sc.filter((c) => state2.progress[c.id]).length;
+    return `${marked}/${sc.length}`;
+  };
+  return `<div class="onboarding-preparation">
+    <div class="onboarding-subject-tabs" role="tablist" aria-label="Choose a subject">
+      ${subjects.map((subject3) => `<button type="button" role="tab" class="onboarding-sub-tab${selectedSubject === subject3.id ? " active" : ""}" data-onboarding="subject" data-value="${subject3.id}" aria-selected="${selectedSubject === subject3.id}" aria-pressed="${selectedSubject === subject3.id}"><span>${esc(subject3.title)}</span> <small class="onboarding-sub-count">${subCount(subject3.id)}</small></button>`).join("")}
+    </div>
+    <div class="onboarding-selection-head">
+      <div class="onboarding-prep-meta">
+        <strong>${recorded} of ${list.length} chapters marked</strong>
+        <span class="onboarding-sel-pill" data-selection-badge>${selection.size ? `${selection.size} selected` : "Select chapters to batch-rate"}</span>
+      </div>
+      <div class="onboarding-sel-buttons">
+        ${button2("select-all", selection.size === list.length ? "Clear selection" : "Select all chapters", "outline")}
+      </div>
+    </div>
+    <div class="onboarding-fast-bulk" role="toolbar" aria-label="Quick batch actions">
+      <div class="fast-bulk-label"><span>Batch difficulty:</span></div>
+      <div class="fast-bulk-actions">
+        <button type="button" class="bulk-diff-pill diff-difficult" data-onboarding="bulk-rating" data-rating="Difficult"${selection.size ? "" : " disabled"} title="Mark selected chapters as Difficult">
+          \u{1F534} Mark Difficult
+        </button>
+        <button type="button" class="bulk-diff-pill diff-okay" data-onboarding="bulk-rating" data-rating="Okay"${selection.size ? "" : " disabled"} title="Mark selected chapters as Okay">
+          \u{1F7E1} Mark Okay
+        </button>
+        <button type="button" class="bulk-diff-pill diff-easy" data-onboarding="bulk-rating" data-rating="Easy"${selection.size ? "" : " disabled"} title="Mark selected chapters as Easy">
+          \u{1F7E2} Mark Easy
+        </button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-onboarding="bulk-status" data-status="Completed"${selection.size ? "" : " disabled"} title="Mark selected chapters as Learned">
+          \u26A1 Mark Learned
+        </button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-onboarding="bulk-status" data-status="Needs revision"${selection.size ? "" : " disabled"} title="Mark selected chapters as Needs Revision">
+          \u{1F504} Needs Revision
+        </button>
+      </div>
+    </div>
+    <div class="onboarding-chapters" role="list">
+      ${list.map((chapter) => {
+    const progress2 = state2.progress[chapter.id];
+    const status = progress2 ? learningStates.find(([value]) => value === progress2.status)?.[1] ?? progress2.status : "Not yet marked";
+    const rating = progress2?.rating;
+    const isChecked = selection.has(chapter.id);
+    return `<div class="onboarding-chapter-row${isChecked ? " is-selected" : ""}${progress2 ? " is-marked" : ""}" data-row-chapter="${chapter.id}">
+          <label class="onboarding-chapter-label" title="Select ${esc(chapter.title)}">
+            <input type="checkbox" data-onboarding-chapter="${chapter.id}"${checked(isChecked)}>
+            <div class="chapter-label-content">
+              <span class="chapter-name">${esc(chapter.title)}</span>
+              <div class="chapter-badges">
+                <span class="chapter-badge status-tag ${progress2 ? "has-status" : "unmarked"}">${esc(status)}</span>
+                ${rating ? `<span class="chapter-badge rating-tag rating-${rating.toLowerCase()}">\u2605 ${rating}</span>` : ""}
+              </div>
+            </div>
+          </label>
+          <div class="onboarding-diff-group" role="group" aria-label="1-click difficulty for ${esc(chapter.title)}">
+            <button type="button" class="diff-btn diff-easy${rating === "Easy" ? " active" : ""}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Easy" title="Rate Easy">
+              \u{1F7E2} Easy
+            </button>
+            <button type="button" class="diff-btn diff-okay${rating === "Okay" ? " active" : ""}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Okay" title="Rate Okay">
+              \u{1F7E1} Okay
+            </button>
+            <button type="button" class="diff-btn diff-difficult${rating === "Difficult" ? " active" : ""}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Difficult" title="Rate Difficult">
+              \u{1F534} Difficult
+            </button>
+          </div>
+        </div>`;
+  }).join("")}
+    </div>
+    <div class="onboarding-bulk-advanced">
+      <details>
+        <summary>Custom status dropdowns <span>(optional)</span></summary>
+        <div class="onboarding-bulk">
+          <label><span class="sr">Status for selected chapters</span><select name="bulkStatus">${option("", "Choose a learning status")}${learningStates.map(([value, label2]) => option(value, label2)).join("")}</select></label>
+          <label><span class="sr">Difficulty for selected chapters</span><select name="bulkRating">${option("", "Difficulty (optional)")}${["Easy", "Okay", "Difficult"].map((value) => option(value, value)).join("")}</select></label>
+          <button type="button" class="button primary" data-onboarding="apply-status"${selection.size ? "" : " disabled"}>Apply to ${selection.size}</button>
+        </div>
+      </details>
+    </div>
+    <p class="onboarding-help">Click <strong>Easy</strong>, <strong>Okay</strong>, or <strong>Difficult</strong> directly on any chapter to rate it in one tap. You can also select chapters using the checkboxes and rate them together above.</p>
+  </div>`;
 }
 function priorityFields(p) {
   return `<div class="onboarding-question"><fieldset class="onboarding-fieldset"><legend>Which subjects need a little more support?</legend>${subjectCards("difficultSubjects", p.difficultSubjects)}</fieldset><fieldset class="onboarding-fieldset"><legend>Where do you feel more confident?</legend>${subjectCards("confidentSubjects", p.confidentSubjects)}</fieldset><label>What would help most right now?<select name="focus">${option("balanced", "A balance of learning and revision", p.focus)}${option("learning", "Getting through first-time learning", p.focus)}${option("revision", "Making revision more consistent", p.focus)}</select></label><div class="onboarding-explainer">${icon("clipboard-list")}<p>Have a test coming up? Add it in Tests or upload your school planner after setup. Confirmed dates and coverage will shape your plan.</p></div></div>`;
@@ -5295,6 +5371,27 @@ function openPersonalisation(host3, section = "day") {
     await host3.commit(next, "Your preferences are saved.");
   };
 }
+function updateSelectionDom() {
+  const count = selection.size;
+  const badge2 = document.querySelector("[data-selection-badge]");
+  if (badge2) badge2.textContent = count ? `${count} selected` : "Select chapters to batch-rate";
+  const apply = document.querySelector('[data-onboarding="apply-status"]');
+  if (apply) {
+    apply.disabled = !count;
+    apply.textContent = `Apply to ${count}`;
+  }
+  const bulkBtns = document.querySelectorAll('[data-onboarding="bulk-rating"], [data-onboarding="bulk-status"]');
+  bulkBtns.forEach((btn2) => {
+    btn2.disabled = !count;
+  });
+  const list = chapters.filter((chapter) => chapter.subject === selectedSubject);
+  const selectAllBtn = document.querySelector('[data-onboarding="select-all"]');
+  if (selectAllBtn) selectAllBtn.textContent = count === list.length ? "Clear selection" : "Select all chapters";
+  document.querySelectorAll(".onboarding-chapter-row").forEach((row2) => {
+    const chId = row2.dataset.rowChapter;
+    if (chId) row2.classList.toggle("is-selected", selection.has(chId));
+  });
+}
 function initOnboarding(host3, onComplete) {
   if (registered2) return;
   registered2 = true;
@@ -5336,13 +5433,10 @@ function initOnboarding(host3, onComplete) {
       return;
     }
     if (input.dataset.onboardingChapter) {
-      if (input.checked) selection.add(input.dataset.onboardingChapter);
-      else selection.delete(input.dataset.onboardingChapter);
-      const apply = document.querySelector('[data-onboarding="apply-status"]');
-      if (apply) {
-        apply.disabled = !selection.size;
-        apply.textContent = "Apply to " + selection.size;
-      }
+      const id = input.dataset.onboardingChapter;
+      if (input.checked) selection.add(id);
+      else selection.delete(id);
+      updateSelectionDom();
       return;
     }
     if (input.closest("#onboarding-form")) {
@@ -5377,25 +5471,97 @@ function initOnboarding(host3, onComplete) {
       const list = chapters.filter((chapter) => chapter.subject === selectedSubject);
       if (selection.size === list.length) selection.clear();
       else selection = new Set(list.map((chapter) => chapter.id));
-      persist(host3);
+      document.querySelectorAll("input[data-onboarding-chapter]").forEach((input) => {
+        input.checked = selection.has(input.dataset.onboardingChapter);
+      });
+      updateSelectionDom();
+      return;
+    }
+    if (action2 === "set-chapter-rating") {
+      const chapterId = element.dataset.chapter, rating = element.dataset.rating;
+      if (!chapterId || !rating) return;
+      saving = saving.then(async () => {
+        const next = structuredClone(host3.getState());
+        const current = next.progress[chapterId];
+        if (current?.rating === rating) {
+          if (current.status && current.status !== "Needs revision") {
+            delete current.rating;
+          } else {
+            delete next.progress[chapterId];
+          }
+        } else {
+          const defaultStatus = current?.status ?? (rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed");
+          next.progress[chapterId] = {
+            ...current,
+            status: defaultStatus,
+            rating
+          };
+        }
+        await host3.commit(next, `Rated ${rating}.`);
+      });
+      return;
+    }
+    if (action2 === "bulk-rating") {
+      const rating = element.dataset.rating;
+      if (!rating || !selection.size) return;
+      const selectedIds = [...selection];
+      selection.clear();
+      saving = saving.then(async () => {
+        const next = structuredClone(host3.getState());
+        for (const id of selectedIds) {
+          const current = next.progress[id];
+          const defaultStatus = current?.status ?? (rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed");
+          next.progress[id] = {
+            ...current,
+            status: defaultStatus,
+            rating
+          };
+        }
+        await host3.commit(next, `${selectedIds.length} chapter${selectedIds.length > 1 ? "s" : ""} marked ${rating}.`);
+      });
+      return;
+    }
+    if (action2 === "bulk-status") {
+      const status = element.dataset.status;
+      if (!status || !selection.size) return;
+      const selectedIds = [...selection];
+      selection.clear();
+      saving = saving.then(async () => {
+        const next = structuredClone(host3.getState());
+        for (const id of selectedIds) {
+          if (status === "Pending") {
+            delete next.progress[id];
+          } else {
+            next.progress[id] = {
+              ...next.progress[id],
+              status
+            };
+          }
+        }
+        await host3.commit(next, `${selectedIds.length} chapter${selectedIds.length > 1 ? "s" : ""} updated.`);
+      });
       return;
     }
     if (action2 === "apply-status") {
-      const status = form2.elements.namedItem("bulkStatus").value, rating = form2.elements.namedItem("bulkRating").value;
+      const status = form2.elements.namedItem("bulkStatus")?.value, rating = form2.elements.namedItem("bulkRating")?.value;
       if (!learningStates.some(([value2]) => value2 === status) && !rating) {
-        showError("Choose a learning status or difficulty for the selected chapters.", form2);
+        showError("Choose a learning status or difficulty to apply.", form2);
         return;
       }
+      const selectedIds = [...selection];
+      selection.clear();
       saving = saving.then(async () => {
         const next = structuredClone(host3.getState());
-        for (const id of selection) {
-          if (!status && !next.progress[id]) {
-            showError("Choose a learning status first for unmarked chapters. Difficulty alone does not tell BLOOM what you have learned.");
-            return;
-          }
-          next.progress[id] = { ...next.progress[id], status: status || next.progress[id].status, ...rating ? { rating } : {} };
+        for (const id of selectedIds) {
+          const current = next.progress[id];
+          const finalStatus = status || current?.status || (rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed");
+          next.progress[id] = {
+            ...current,
+            status: finalStatus,
+            ...rating ? { rating } : {}
+          };
         }
-        if (await host3.commit(next, "Chapter preparation saved.")) selection.clear();
+        await host3.commit(next, "Chapter preparation saved.");
       });
       return;
     }

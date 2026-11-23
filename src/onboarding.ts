@@ -47,7 +47,86 @@ function rangeFields(kind:'meals'|'commitments',ranges:TimeRange[]){
 }
 function preparationFields(state:PersonalState){
   const list=chapters.filter(chapter=>chapter.subject===selectedSubject),recorded=list.filter(chapter=>state.progress[chapter.id]).length;
-  return `<div class="onboarding-preparation"><div class="onboarding-subject-tabs" aria-label="Choose a subject">${subjects.map(subject=>`<button type="button" data-onboarding="subject" data-value="${subject.id}" aria-pressed="${selectedSubject===subject.id}">${esc(subject.title)}</button>`).join('')}</div><div class="onboarding-selection-head"><span>${recorded} of ${list.length} chapters marked</span>${button('select-all',selection.size===list.length?'Clear selection':'Select all')}</div><div class="onboarding-bulk"><label><span class="sr">Status for selected chapters</span><select name="bulkStatus">${option('','Choose a learning status')}${learningStates.map(([value,label])=>option(value,label)).join('')}</select></label><label><span class="sr">Difficulty for selected chapters</span><select name="bulkRating">${option('','Difficulty (optional)')}${['Easy','Okay','Difficult'].map(value=>option(value,value)).join('')}</select></label><button type="button" class="button primary" data-onboarding="apply-status"${selection.size?'':' disabled'}>Apply to ${selection.size}</button></div><div class="onboarding-chapters">${list.map(chapter=>{const progress=state.progress[chapter.id],label=progress?learningStates.find(([value])=>value===progress.status)?.[1]??progress.status:'Not yet marked';return `<label class="onboarding-chapter"><input type="checkbox" data-onboarding-chapter="${chapter.id}"${checked(selection.has(chapter.id))}><span>${esc(chapter.title)}</span><small>${esc(label)}${progress?.rating?' · '+progress.rating:''}</small></label>`;}).join('')}</div><p class="onboarding-help">Mark a few chapters you know about. Unmarked chapters stay unknown. A difficulty rating is separate from your learning status.</p></div>`;
+  const subCount=(subId:string)=>{
+    const sc=chapters.filter(c=>c.subject===subId),marked=sc.filter(c=>state.progress[c.id]).length;
+    return `${marked}/${sc.length}`;
+  };
+  return `<div class="onboarding-preparation">
+    <div class="onboarding-subject-tabs" role="tablist" aria-label="Choose a subject">
+      ${subjects.map(subject=>`<button type="button" role="tab" class="onboarding-sub-tab${selectedSubject===subject.id?' active':''}" data-onboarding="subject" data-value="${subject.id}" aria-selected="${selectedSubject===subject.id}" aria-pressed="${selectedSubject===subject.id}"><span>${esc(subject.title)}</span> <small class="onboarding-sub-count">${subCount(subject.id)}</small></button>`).join('')}
+    </div>
+    <div class="onboarding-selection-head">
+      <div class="onboarding-prep-meta">
+        <strong>${recorded} of ${list.length} chapters marked</strong>
+        <span class="onboarding-sel-pill" data-selection-badge>${selection.size?`${selection.size} selected`:'Select chapters to batch-rate'}</span>
+      </div>
+      <div class="onboarding-sel-buttons">
+        ${button('select-all',selection.size===list.length?'Clear selection':'Select all chapters','outline')}
+      </div>
+    </div>
+    <div class="onboarding-fast-bulk" role="toolbar" aria-label="Quick batch actions">
+      <div class="fast-bulk-label"><span>Batch difficulty:</span></div>
+      <div class="fast-bulk-actions">
+        <button type="button" class="bulk-diff-pill diff-difficult" data-onboarding="bulk-rating" data-rating="Difficult"${selection.size?'':' disabled'} title="Mark selected chapters as Difficult">
+          🔴 Mark Difficult
+        </button>
+        <button type="button" class="bulk-diff-pill diff-okay" data-onboarding="bulk-rating" data-rating="Okay"${selection.size?'':' disabled'} title="Mark selected chapters as Okay">
+          🟡 Mark Okay
+        </button>
+        <button type="button" class="bulk-diff-pill diff-easy" data-onboarding="bulk-rating" data-rating="Easy"${selection.size?'':' disabled'} title="Mark selected chapters as Easy">
+          🟢 Mark Easy
+        </button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-onboarding="bulk-status" data-status="Completed"${selection.size?'':' disabled'} title="Mark selected chapters as Learned">
+          ⚡ Mark Learned
+        </button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-onboarding="bulk-status" data-status="Needs revision"${selection.size?'':' disabled'} title="Mark selected chapters as Needs Revision">
+          🔄 Needs Revision
+        </button>
+      </div>
+    </div>
+    <div class="onboarding-chapters" role="list">
+      ${list.map(chapter=>{
+        const progress=state.progress[chapter.id];
+        const status=progress?learningStates.find(([value])=>value===progress.status)?.[1]??progress.status:'Not yet marked';
+        const rating=progress?.rating;
+        const isChecked=selection.has(chapter.id);
+        return `<div class="onboarding-chapter-row${isChecked?' is-selected':''}${progress?' is-marked':''}" data-row-chapter="${chapter.id}">
+          <label class="onboarding-chapter-label" title="Select ${esc(chapter.title)}">
+            <input type="checkbox" data-onboarding-chapter="${chapter.id}"${checked(isChecked)}>
+            <div class="chapter-label-content">
+              <span class="chapter-name">${esc(chapter.title)}</span>
+              <div class="chapter-badges">
+                <span class="chapter-badge status-tag ${progress?'has-status':'unmarked'}">${esc(status)}</span>
+                ${rating?`<span class="chapter-badge rating-tag rating-${rating.toLowerCase()}">★ ${rating}</span>`:''}
+              </div>
+            </div>
+          </label>
+          <div class="onboarding-diff-group" role="group" aria-label="1-click difficulty for ${esc(chapter.title)}">
+            <button type="button" class="diff-btn diff-easy${rating==='Easy'?' active':''}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Easy" title="Rate Easy">
+              🟢 Easy
+            </button>
+            <button type="button" class="diff-btn diff-okay${rating==='Okay'?' active':''}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Okay" title="Rate Okay">
+              🟡 Okay
+            </button>
+            <button type="button" class="diff-btn diff-difficult${rating==='Difficult'?' active':''}" data-onboarding="set-chapter-rating" data-chapter="${chapter.id}" data-rating="Difficult" title="Rate Difficult">
+              🔴 Difficult
+            </button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="onboarding-bulk-advanced">
+      <details>
+        <summary>Custom status dropdowns <span>(optional)</span></summary>
+        <div class="onboarding-bulk">
+          <label><span class="sr">Status for selected chapters</span><select name="bulkStatus">${option('','Choose a learning status')}${learningStates.map(([value,label])=>option(value,label)).join('')}</select></label>
+          <label><span class="sr">Difficulty for selected chapters</span><select name="bulkRating">${option('','Difficulty (optional)')}${['Easy','Okay','Difficult'].map(value=>option(value,value)).join('')}</select></label>
+          <button type="button" class="button primary" data-onboarding="apply-status"${selection.size?'':' disabled'}>Apply to ${selection.size}</button>
+        </div>
+      </details>
+    </div>
+    <p class="onboarding-help">Click <strong>Easy</strong>, <strong>Okay</strong>, or <strong>Difficult</strong> directly on any chapter to rate it in one tap. You can also select chapters using the checkboxes and rate them together above.</p>
+  </div>`;
 }
 function priorityFields(p:PlanningProfile){
   return `<div class="onboarding-question"><fieldset class="onboarding-fieldset"><legend>Which subjects need a little more support?</legend>${subjectCards('difficultSubjects',p.difficultSubjects)}</fieldset><fieldset class="onboarding-fieldset"><legend>Where do you feel more confident?</legend>${subjectCards('confidentSubjects',p.confidentSubjects)}</fieldset><label>What would help most right now?<select name="focus">${option('balanced','A balance of learning and revision',p.focus)}${option('learning','Getting through first-time learning',p.focus)}${option('revision','Making revision more consistent',p.focus)}</select></label><div class="onboarding-explainer">${icon('clipboard-list')}<p>Have a test coming up? Add it in Tests or upload your school planner after setup. Confirmed dates and coverage will shape your plan.</p></div></div>`;
@@ -111,6 +190,23 @@ export function openPersonalisation(host:Host,section:'profile'|'day'|'commitmen
   dialog.querySelector<HTMLFormElement>('form')!.onsubmit=async event=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement,error=validation(form,step);if(error){showError(error,form);return;}const next=readStep(host.getState() as PersonalState,form,step);next.onboarding={...next.onboarding!,answered:[...new Set([...(next.onboarding?.answered??[]),step])]};await host.commit(next,'Your preferences are saved.');};
 }
 
+function updateSelectionDom(){
+  const count=selection.size;
+  const badge=document.querySelector<HTMLElement>('[data-selection-badge]');
+  if(badge)badge.textContent=count?`${count} selected`:'Select chapters to batch-rate';
+  const apply=document.querySelector<HTMLButtonElement>('[data-onboarding="apply-status"]');
+  if(apply){apply.disabled=!count;apply.textContent=`Apply to ${count}`;}
+  const bulkBtns=document.querySelectorAll<HTMLButtonElement>('[data-onboarding="bulk-rating"], [data-onboarding="bulk-status"]');
+  bulkBtns.forEach(btn=>{btn.disabled=!count;});
+  const list=chapters.filter(chapter=>chapter.subject===selectedSubject);
+  const selectAllBtn=document.querySelector<HTMLButtonElement>('[data-onboarding="select-all"]');
+  if(selectAllBtn)selectAllBtn.textContent=count===list.length?'Clear selection':'Select all chapters';
+  document.querySelectorAll<HTMLElement>('.onboarding-chapter-row').forEach(row=>{
+    const chId=row.dataset.rowChapter;
+    if(chId)row.classList.toggle('is-selected',selection.has(chId));
+  });
+}
+
 export function initOnboarding(host:Host,onComplete:()=>void):void{
   if(registered)return;registered=true;
   document.addEventListener('submit',event=>{
@@ -123,7 +219,12 @@ export function initOnboarding(host:Host,onComplete:()=>void):void{
   document.addEventListener('change',event=>{
     const input=event.target as HTMLInputElement;
     if(input.name==='onboardingReduceMotion'){const next=structuredClone(host.getState());next.reduceMotion=input.checked;void host.commit(next);return;}
-    if(input.dataset.onboardingChapter){if(input.checked)selection.add(input.dataset.onboardingChapter);else selection.delete(input.dataset.onboardingChapter);const apply=document.querySelector<HTMLButtonElement>('[data-onboarding="apply-status"]');if(apply){apply.disabled=!selection.size;apply.textContent='Apply to '+selection.size;}return;}
+    if(input.dataset.onboardingChapter){
+      const id=input.dataset.onboardingChapter;
+      if(input.checked)selection.add(id);else selection.delete(id);
+      updateSelectionDom();
+      return;
+    }
     if(input.closest('#onboarding-form')){clearTimeout(saveTimer);persist(host);}
   });
   document.addEventListener('click',event=>{
@@ -134,11 +235,100 @@ export function initOnboarding(host:Host,onComplete:()=>void):void{
     if(action==='remove-range'){element.closest('[data-range]')?.remove();if(form.id==='onboarding-form')persist(host);return;}
     clearTimeout(saveTimer);
     if(action==='subject'){selectedSubject=value;selection.clear();persist(host);return;}
-    if(action==='select-all'){const list=chapters.filter(chapter=>chapter.subject===selectedSubject);if(selection.size===list.length)selection.clear();else selection=new Set(list.map(chapter=>chapter.id));persist(host);return;}
+    if(action==='select-all'){
+      const list=chapters.filter(chapter=>chapter.subject===selectedSubject);
+      if(selection.size===list.length)selection.clear();
+      else selection=new Set(list.map(chapter=>chapter.id));
+      document.querySelectorAll<HTMLInputElement>('input[data-onboarding-chapter]').forEach(input=>{
+        input.checked=selection.has(input.dataset.onboardingChapter!);
+      });
+      updateSelectionDom();
+      return;
+    }
+    if(action==='set-chapter-rating'){
+      const chapterId=element.dataset.chapter,rating=element.dataset.rating as 'Easy'|'Okay'|'Difficult';
+      if(!chapterId||!rating)return;
+      saving=saving.then(async()=>{
+        const next=structuredClone(host.getState()) as PersonalState;
+        const current=next.progress[chapterId];
+        if(current?.rating===rating){
+          if(current.status&&current.status!=='Needs revision'){
+            delete current.rating;
+          }else{
+            delete next.progress[chapterId];
+          }
+        }else{
+          const defaultStatus:Status=current?.status??(rating==='Difficult'?'Needs revision':rating==='Okay'?'Learning':'Completed');
+          next.progress[chapterId]={
+            ...current,
+            status:defaultStatus,
+            rating
+          };
+        }
+        await host.commit(next,`Rated ${rating}.`);
+      });
+      return;
+    }
+    if(action==='bulk-rating'){
+      const rating=element.dataset.rating as 'Easy'|'Okay'|'Difficult';
+      if(!rating||!selection.size)return;
+      const selectedIds=[...selection];
+      selection.clear();
+      saving=saving.then(async()=>{
+        const next=structuredClone(host.getState()) as PersonalState;
+        for(const id of selectedIds){
+          const current=next.progress[id];
+          const defaultStatus:Status=current?.status??(rating==='Difficult'?'Needs revision':rating==='Okay'?'Learning':'Completed');
+          next.progress[id]={
+            ...current,
+            status:defaultStatus,
+            rating
+          };
+        }
+        await host.commit(next,`${selectedIds.length} chapter${selectedIds.length>1?'s':''} marked ${rating}.`);
+      });
+      return;
+    }
+    if(action==='bulk-status'){
+      const status=element.dataset.status as Status;
+      if(!status||!selection.size)return;
+      const selectedIds=[...selection];
+      selection.clear();
+      saving=saving.then(async()=>{
+        const next=structuredClone(host.getState()) as PersonalState;
+        for(const id of selectedIds){
+          if(status==='Pending'){
+            delete next.progress[id];
+          }else{
+            next.progress[id]={
+              ...next.progress[id],
+              status
+            };
+          }
+        }
+        await host.commit(next,`${selectedIds.length} chapter${selectedIds.length>1?'s':''} updated.`);
+      });
+      return;
+    }
     if(action==='apply-status'){
-      const status=(form.elements.namedItem('bulkStatus') as HTMLSelectElement).value as Status,rating=(form.elements.namedItem('bulkRating') as HTMLSelectElement).value;
-      if(!learningStates.some(([value])=>value===status)&&!rating){showError('Choose a learning status or difficulty for the selected chapters.',form);return;}
-      saving=saving.then(async()=>{const next=structuredClone(host.getState());for(const id of selection){if(!status&&!next.progress[id]){showError('Choose a learning status first for unmarked chapters. Difficulty alone does not tell BLOOM what you have learned.');return;}next.progress[id]={...next.progress[id],status:status||next.progress[id].status,...(rating?{rating:rating as 'Easy'|'Okay'|'Difficult'}:{})};}if(await host.commit(next,'Chapter preparation saved.'))selection.clear();});return;
+      const status=(form.elements.namedItem('bulkStatus') as HTMLSelectElement)?.value as Status,rating=(form.elements.namedItem('bulkRating') as HTMLSelectElement)?.value as 'Easy'|'Okay'|'Difficult'|'';
+      if(!learningStates.some(([value])=>value===status)&&!rating){showError('Choose a learning status or difficulty to apply.',form);return;}
+      const selectedIds=[...selection];
+      selection.clear();
+      saving=saving.then(async()=>{
+        const next=structuredClone(host.getState()) as PersonalState;
+        for(const id of selectedIds){
+          const current=next.progress[id];
+          const finalStatus:Status=status||current?.status||(rating==='Difficult'?'Needs revision':rating==='Okay'?'Learning':'Completed');
+          next.progress[id]={
+            ...current,
+            status:finalStatus,
+            ...(rating?{rating}:{})
+          };
+        }
+        await host.commit(next,'Chapter preparation saved.');
+      });
+      return;
     }
     if(['back','skip','essentials','edit-step'].includes(action)){
       const target=action==='back'?Math.max(0,step-1):action==='skip'?Math.min(6,step+1):action==='essentials'?6:Number(value),snapshot=form.cloneNode(true) as HTMLFormElement;copyValues(form,snapshot);
