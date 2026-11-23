@@ -118,16 +118,17 @@ async function extractTextFromBuffer(buffer, filename = '') {
       for (let n = 1; n <= maxPages; n++) {
         const page = await doc.getPage(n);
         const content = await page.getTextContent();
-        const rows = new Map();
-        for (const item of content.items) {
-          if (!item.str || !item.str.trim()) continue;
-          const y = Math.round(item.transform[5] / 3) * 3;
-          if (!rows.has(y)) rows.set(y, []);
-          rows.get(y).push({ x: item.transform[4], text: item.str });
+        const items = content.items.filter(i => i.str && i.str.trim());
+        items.sort((a, b) => b.transform[5] - a.transform[5]);
+        const clusteredRows = [];
+        for (const item of items) {
+          const y = item.transform[5], x = item.transform[4];
+          let row = clusteredRows.find(r => Math.abs(r.y - y) <= 6);
+          if (!row) { row = { y, items: [] }; clusteredRows.push(row); }
+          row.items.push({ x, text: item.str });
         }
-        const pageText = [...rows.entries()]
-          .sort((a, b) => b[0] - a[0])
-          .map(([, items]) => items.sort((a, b) => a.x - b.x).map(x => x.text).join(' '))
+        const pageText = clusteredRows
+          .map(r => r.items.sort((a, b) => a.x - b.x).map(x => x.text).join(' '))
           .join('\n');
         pages.push(pageText);
         page.cleanup();
@@ -233,11 +234,19 @@ createServer(async (req, res) => {
             return;
           }
 
-          const { parsePlannerText } = await import(resolve('dist/js/import-parser.js'));
+          const { parsePlannerText, inferAcademicDate } = await import(resolve('dist/js/import-parser.js'));
           const { matchChapterCoverage, generateStudySessionsForTests } = await import(resolve('dist/js/planner-analyzer.js'));
 
           const candidates = parsePlannerText(text);
           for (const cand of candidates) {
+            if (!cand.day && inferAcademicDate) {
+              const inf = inferAcademicDate(cand.source || cand.title);
+              if (inf) {
+                cand.day = inf;
+                cand.selected = true;
+                cand.warnings = cand.warnings.filter(w => !w.includes('correction'));
+              }
+            }
             if (cand.subject) {
               cand.coverage = matchChapterCoverage(cand.source || cand.title, cand.subject);
             }

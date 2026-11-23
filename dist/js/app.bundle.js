@@ -3721,12 +3721,24 @@ var icon = (name) => icons[name] ?? "";
 var monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 var monthPattern = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Sept|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 var aliases = [
-  ["pe", /\b(?:physical\s*education|physical\s*ed\.?|p\.?\s*e\.?(?=\s|$)|048)\b/i],
+  ["pe", /\b(?:physical\s*education|physical\s*ed\.?|p\.?\s*e\.?(?=\s|$)|048|yoga|computer\s*science\s*\/\s*pe|c\.?s\.?\s*\/\s*pe)\b/i],
   ["physics", /\b(?:physics|phy\.?|042)\b/i],
   ["chemistry", /\b(?:chemistry|chem\.?|043)\b/i],
   ["math", /\b(?:mathematics|maths?|041)\b/i],
   ["english", /\b(?:english(?:\s*core)?|eng\.?|301)\b/i]
 ];
+function inferAcademicDate(rowText) {
+  const m = rowText.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\b/);
+  if (!m) return "";
+  const dayNum = parseInt(m[1], 10);
+  const monthStr = m[2].toLowerCase().slice(0, 3);
+  const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const monthIdx = months.indexOf(monthStr);
+  if (monthIdx === -1) return "";
+  const year = monthIdx >= 5 ? 2026 : 2027;
+  const iso2 = `${year}-${String(monthIdx + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+  return validPlannerDate(iso2) ? iso2 : "";
+}
 function validPlannerDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [y, m, d] = value.split("-").map(Number);
@@ -3874,6 +3886,23 @@ var chapterKeywords = {
 function matchChapterCoverage(text2, subjectId) {
   const subjectChapters = chapters.filter((c) => c.subject === subjectId);
   const matched = /* @__PURE__ */ new Set();
+  if (!subjectChapters.length) return [];
+  if (/full\s*(?:course|syllabus)|complete\s*(?:course|syllabus)|all\s*chapters?/i.test(text2)) {
+    return subjectChapters.map((c) => c.id);
+  }
+  const rangeMatch = text2.match(/(?:chap(?:ter)?s?|ch\.?)\s*(\d+)\s*(?:to|-)\s*(\d+)/i);
+  if (rangeMatch) {
+    const start = parseInt(rangeMatch[1], 10);
+    const end = parseInt(rangeMatch[2], 10);
+    if (start >= 1 && end >= start) {
+      const slice = subjectChapters.slice(start - 1, end);
+      for (const c of slice) matched.add(c.id);
+    }
+  }
+  if (subjectId === "pe" && /\byoga\b/i.test(text2)) {
+    const yogaCh = subjectChapters.find((c) => /yoga/i.test(c.title));
+    if (yogaCh) matched.add(yogaCh.id);
+  }
   for (const c of subjectChapters) {
     const titleRe = new RegExp("\\b" + c.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
     if (titleRe.test(text2)) {
@@ -4125,14 +4154,19 @@ async function extractDocument(file, onProgress = () => {
       aborted(signal);
       onProgress("Reading PDF page " + n + " of " + doc.numPages + "\u2026");
       const page2 = await doc.getPage(n), content = await page2.getTextContent();
-      const rows = /* @__PURE__ */ new Map();
-      for (const item of content.items) {
-        if (!("str" in item) || !item.str.trim()) continue;
-        const y = Math.round(item.transform[5] / 3) * 3;
-        if (!rows.has(y)) rows.set(y, []);
-        rows.get(y).push({ x: item.transform[4], text: item.str });
+      const items = content.items.filter((i) => "str" in i && i.str.trim());
+      items.sort((a, b) => b.transform[5] - a.transform[5]);
+      const clusteredRows = [];
+      for (const item of items) {
+        const y = item.transform[5], x = item.transform[4];
+        let row2 = clusteredRows.find((r) => Math.abs(r.y - y) <= 6);
+        if (!row2) {
+          row2 = { y, items: [] };
+          clusteredRows.push(row2);
+        }
+        row2.items.push({ x, text: item.str });
       }
-      let text2 = [...rows.entries()].sort((a, b) => b[0] - a[0]).map(([, items]) => items.sort((a, b) => a.x - b.x).map((x) => x.text).join(" ")).join("\n");
+      let text2 = clusteredRows.map((r) => r.items.sort((a, b) => a.x - b.x).map((x) => x.text).join(" ")).join("\n");
       if (text2.replace(/\s/g, "").length < 20) {
         onProgress("Page " + n + " is a scan. Reading its image on this device\u2026");
         const natural = page2.getViewport({ scale: 1 }), scale2 = Math.min(2, 2e3 / Math.max(natural.width, natural.height)), viewport = page2.getViewport({ scale: scale2 });
@@ -4305,6 +4339,14 @@ function openPlannerImport(host3) {
     }
     rows = parsePlannerText(raw);
     for (const row2 of rows) {
+      if (!row2.day) {
+        const inf = inferAcademicDate(row2.source || row2.title);
+        if (inf) {
+          row2.day = inf;
+          row2.selected = true;
+          row2.warnings = row2.warnings.filter((w) => !w.includes("correction"));
+        }
+      }
       if (row2.subject && (!row2.coverage || !row2.coverage.length)) {
         row2.coverage = matchChapterCoverage(row2.source || row2.title, row2.subject);
       }
@@ -4361,7 +4403,20 @@ function openPlannerImport(host3) {
             raw = json.text || "";
             textInput.value = raw;
             rows = json.candidates;
-            plannedSessions = json.plannedSessions || [];
+            for (const row2 of rows) {
+              if (!row2.day) {
+                const inf = inferAcademicDate(row2.source || row2.title);
+                if (inf) {
+                  row2.day = inf;
+                  row2.selected = true;
+                  row2.warnings = row2.warnings.filter((w) => !w.includes("correction"));
+                }
+              }
+              if (row2.subject && (!row2.coverage || !row2.coverage.length)) {
+                row2.coverage = matchChapterCoverage(row2.source || row2.title, row2.subject);
+              }
+            }
+            plannedSessions = json.plannedSessions && json.plannedSessions.length ? json.plannedSessions : generateStudySessionsForTests(rows, host3.getState());
             root.querySelector(".import-text").open = true;
             renderRows();
             backendSuccess = true;

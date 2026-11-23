@@ -1,5 +1,5 @@
 import { chapters, subjects } from './curriculum.js';
-import { parsePlannerText, plannerIdentity, validPlannerDate } from './import-parser.js';
+import { parsePlannerText, plannerIdentity, validPlannerDate, inferAcademicDate } from './import-parser.js';
 import { matchChapterCoverage, generateStudySessionsForTests, SAMPLE_CBSE_PLANNER } from './planner-analyzer.js';
 import { esc } from './host.js';
 const localAsset = (path) => new URL('../vendor/' + path, import.meta.url).href;
@@ -126,16 +126,19 @@ export async function extractDocument(file, onProgress = () => { }, signal) {
             aborted(signal);
             onProgress('Reading PDF page ' + n + ' of ' + doc.numPages + '…');
             const page = await doc.getPage(n), content = await page.getTextContent();
-            const rows = new Map();
-            for (const item of content.items) {
-                if (!('str' in item) || !item.str.trim())
-                    continue;
-                const y = Math.round(item.transform[5] / 3) * 3;
-                if (!rows.has(y))
-                    rows.set(y, []);
-                rows.get(y).push({ x: item.transform[4], text: item.str });
+            const items = content.items.filter(i => 'str' in i && i.str.trim());
+            items.sort((a, b) => b.transform[5] - a.transform[5]);
+            const clusteredRows = [];
+            for (const item of items) {
+                const y = item.transform[5], x = item.transform[4];
+                let row = clusteredRows.find(r => Math.abs(r.y - y) <= 6);
+                if (!row) {
+                    row = { y, items: [] };
+                    clusteredRows.push(row);
+                }
+                row.items.push({ x, text: item.str });
             }
-            let text = [...rows.entries()].sort((a, b) => b[0] - a[0]).map(([, items]) => items.sort((a, b) => a.x - b.x).map(x => x.text).join(' ')).join('\n');
+            let text = clusteredRows.map(r => r.items.sort((a, b) => a.x - b.x).map(x => x.text).join(' ')).join('\n');
             if (text.replace(/\s/g, '').length < 20) {
                 onProgress('Page ' + n + ' is a scan. Reading its image on this device…');
                 const natural = page.getViewport({ scale: 1 }), scale = Math.min(2, 2000 / Math.max(natural.width, natural.height)), viewport = page.getViewport({ scale });
@@ -316,6 +319,14 @@ export function openPlannerImport(host) {
         }
         rows = parsePlannerText(raw);
         for (const row of rows) {
+            if (!row.day) {
+                const inf = inferAcademicDate(row.source || row.title);
+                if (inf) {
+                    row.day = inf;
+                    row.selected = true;
+                    row.warnings = row.warnings.filter(w => !w.includes('correction'));
+                }
+            }
             if (row.subject && (!row.coverage || !row.coverage.length)) {
                 row.coverage = matchChapterCoverage(row.source || row.title, row.subject);
             }
@@ -376,7 +387,20 @@ export function openPlannerImport(host) {
                         raw = json.text || '';
                         textInput.value = raw;
                         rows = json.candidates;
-                        plannedSessions = json.plannedSessions || [];
+                        for (const row of rows) {
+                            if (!row.day) {
+                                const inf = inferAcademicDate(row.source || row.title);
+                                if (inf) {
+                                    row.day = inf;
+                                    row.selected = true;
+                                    row.warnings = row.warnings.filter(w => !w.includes('correction'));
+                                }
+                            }
+                            if (row.subject && (!row.coverage || !row.coverage.length)) {
+                                row.coverage = matchChapterCoverage(row.source || row.title, row.subject);
+                            }
+                        }
+                        plannedSessions = json.plannedSessions && json.plannedSessions.length ? json.plannedSessions : generateStudySessionsForTests(rows, host.getState());
                         root.querySelector('.import-text').open = true;
                         renderRows();
                         backendSuccess = true;

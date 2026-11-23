@@ -78,6 +78,29 @@ const chapterKeywords = {
 export function matchChapterCoverage(text, subjectId) {
     const subjectChapters = chapters.filter(c => c.subject === subjectId);
     const matched = new Set();
+    if (!subjectChapters.length)
+        return [];
+    // Check for "Full Course", "Full Syllabus", "Complete Syllabus", "All Chapters"
+    if (/full\s*(?:course|syllabus)|complete\s*(?:course|syllabus)|all\s*chapters?/i.test(text)) {
+        return subjectChapters.map(c => c.id);
+    }
+    // Check for numeric chapter ranges: e.g. "Chap 9 to 14", "Chapters 1-8", "Ch 6 to 10"
+    const rangeMatch = text.match(/(?:chap(?:ter)?s?|ch\.?)\s*(\d+)\s*(?:to|-)\s*(\d+)/i);
+    if (rangeMatch) {
+        const start = parseInt(rangeMatch[1], 10);
+        const end = parseInt(rangeMatch[2], 10);
+        if (start >= 1 && end >= start) {
+            const slice = subjectChapters.slice(start - 1, end);
+            for (const c of slice)
+                matched.add(c.id);
+        }
+    }
+    // Special subject unit aliases: Yoga in PE
+    if (subjectId === 'pe' && /\byoga\b/i.test(text)) {
+        const yogaCh = subjectChapters.find(c => /yoga/i.test(c.title));
+        if (yogaCh)
+            matched.add(yogaCh.id);
+    }
     for (const c of subjectChapters) {
         // Exact chapter title match
         const titleRe = new RegExp('\\b' + c.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');

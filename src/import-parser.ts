@@ -13,12 +13,25 @@ export interface PlannerCandidate {
 const monthNames = ['january','february','march','april','may','june','july','august','september','october','november','december'];
 const monthPattern = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Sept|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
 const aliases: [string, RegExp][] = [
-  ['pe', /\b(?:physical\s*education|physical\s*ed\.?|p\.?\s*e\.?(?=\s|$)|048)\b/i],
+  ['pe', /\b(?:physical\s*education|physical\s*ed\.?|p\.?\s*e\.?(?=\s|$)|048|yoga|computer\s*science\s*\/\s*pe|c\.?s\.?\s*\/\s*pe)\b/i],
   ['physics', /\b(?:physics|phy\.?|042)\b/i],
   ['chemistry', /\b(?:chemistry|chem\.?|043)\b/i],
   ['math', /\b(?:mathematics|maths?|041)\b/i],
   ['english', /\b(?:english(?:\s*core)?|eng\.?|301)\b/i],
 ];
+
+export function inferAcademicDate(rowText: string): string {
+  const m = rowText.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\b/);
+  if (!m) return '';
+  const dayNum = parseInt(m[1], 10);
+  const monthStr = m[2].toLowerCase().slice(0, 3);
+  const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const monthIdx = months.indexOf(monthStr);
+  if (monthIdx === -1) return '';
+  const year = monthIdx >= 5 ? 2026 : 2027;
+  const iso = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+  return validPlannerDate(iso) ? iso : '';
+}
 
 export function validPlannerDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
