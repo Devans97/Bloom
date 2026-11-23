@@ -112,7 +112,7 @@ small,.muted{color:var(--soft)}
 .day-summary{color:var(--soft);border-bottom:1px solid var(--line);padding:6px 0;margin:5px 0 23px}
 .date-tools input{width:146px}
 .segments{background:#efe9ed;border-radius:7px;padding:3px}
-.segments button{border:1px solid transparent;border-radius:5px;min-height:40px;padding:7px 10px;background:none;color:var(--soft);display:flex;align-items:center;gap:5px}
+.segments button{border:1px solid transparent;border-radius:5px;min-height:44px;padding:7px 12px;background:none;color:var(--soft);display:flex;align-items:center;gap:6px}
 .segments button[aria-pressed=true]{background:var(--white);border-color:var(--line);color:var(--rose-dark)}
 .segments svg{height:15px;width:15px}
 .planner-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start}
@@ -666,7 +666,7 @@ form .checkline{display:flex;align-items:center;gap:8px;min-height:34px;font-wei
 }
 
 /* Executive Command Center & Omnisearch Styles */
-.topbar-search-trigger{display:inline-flex;align-items:center;justify-content:space-between;width:min(440px,100%);margin:0 auto;gap:8px;background:rgba(255,255,255,0.78);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 16px;color:var(--soft);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.topbar-search-trigger{display:inline-flex;align-items:center;justify-content:space-between;width:min(440px,100%);min-height:44px;margin:0 auto;gap:8px;background:rgba(255,255,255,0.78);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 16px;color:var(--soft);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1);box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .topbar-search-trigger svg{color:#0284c7;width:15px;height:15px}
 .topbar-search-trigger:hover{border-color:#0284c7;color:var(--ink);background:#fff;box-shadow:0 4px 14px rgba(2,132,199,.12);transform:translateY(-1px)}
 .topbar-search-trigger:active{transform:scale(.98)}
@@ -675,7 +675,7 @@ form .checkline{display:flex;align-items:center;gap:8px;min-height:34px;font-wei
 .studio-card:hover{transform:translateY(-2px);border-color:#0284c7!important;box-shadow:0 10px 25px -5px rgba(2,132,199,.12),0 4px 8px -2px rgba(0,0,0,.04);text-decoration:none!important}
 .readiness-command-card{transition:box-shadow .25s ease}
 .readiness-command-card:hover{box-shadow:0 12px 32px -4px rgba(0,0,0,.06)}
-@media(max-width:768px){.topbar-search-trigger span{display:none}.topbar-search-trigger{padding:6px 10px}}
+@media(max-width:768px){.topbar-search-trigger span{display:none}.topbar-search-trigger{min-height:44px;padding:6px 14px}}
 
 /* ========================================================
    Apple / iOS Design System & Refined Spatial Optics

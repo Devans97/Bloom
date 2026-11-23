@@ -91,10 +91,25 @@ export function renderAcademicHub(subjectId:string,selectedChapterId:string,stat
   };
   const currentStyle=statusColors[currentChapterStatus]??statusColors['Unmarked'];
 
+  const studioBadge = selectedSubject.id === 'physics'
+    ? `<a href="#derivations" class="academic-hub-studio-badge" title="Open Derivations Lab">🔬 Derivations</a>`
+    : selectedSubject.id === 'chemistry'
+    ? `<a href="#roadmaps" class="academic-hub-studio-badge" title="Open Reaction Roadmaps">🧪 Roadmaps</a>`
+    : selectedSubject.id === 'math'
+    ? `<a href="#derivations" class="academic-hub-studio-badge" title="Open Math Proofs">📐 Proofs</a>`
+    : selectedSubject.id === 'english'
+    ? `<a href="#english-studio" class="academic-hub-studio-badge" title="Open English Studio">✍️ Literature</a>`
+    : selectedSubject.id === 'pe'
+    ? `<a href="#pe-studio" class="academic-hub-studio-badge" title="Open PE Fixtures">🏆 Fixtures</a>`
+    : '';
+
   const left=`<aside class="academic-chapters">
     <div class="academic-chapters-head">
       <div>
-        <h2>${esc(selectedSubject.title)}</h2>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <h2>${esc(selectedSubject.title)}</h2>
+          ${studioBadge}
+        </div>
         <p class="muted">${markedChaptersCount} of ${list.length} chapters marked</p>
       </div>
       <button type="button" class="button quiet outline academic-batch-toggle-btn ${selectedSet.size?'active':''}" data-action="toggle-academic-batch">
@@ -160,15 +175,15 @@ export function renderAcademicHub(subjectId:string,selectedChapterId:string,stat
   // Studio Quick-Jump helper based on subject
   let studioShortcuts = '';
   if (selectedSubject.id === 'physics') {
-    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('book-open')} Derivations Lab</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('copy')} Formulas</a>`;
+    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('book-open')} Derivations Lab</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('copy')} Formulas</a>`;
   } else if (selectedSubject.id === 'chemistry') {
-    studioShortcuts = `<a href="#roadmaps" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('sparkles')} Organic Roadmaps & Distinction</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('copy')} Formulas</a>`;
+    studioShortcuts = `<a href="#roadmaps" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('sparkles')} Organic Roadmaps & Distinction</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('copy')} Formulas</a>`;
   } else if (selectedSubject.id === 'math') {
-    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('book-open')} Math Proofs</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('copy')} Formulas</a>`;
+    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('book-open')} Math Proofs</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('copy')} Formulas</a>`;
   } else if (selectedSubject.id === 'english') {
-    studioShortcuts = `<a href="#english-studio" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('pencil')} Literature & Writing Studio</a>`;
+    studioShortcuts = `<a href="#english-studio" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('pencil')} Literature & Writing Studio</a>`;
   } else if (selectedSubject.id === 'pe') {
-    studioShortcuts = `<a href="#pe-studio" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon('trophy')} Fixtures & Biomechanics</a>`;
+    studioShortcuts = `<a href="#pe-studio" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon('trophy')} Fixtures & Biomechanics</a>`;
   }
 
   // Quick Mastery & Difficulty Control Bar

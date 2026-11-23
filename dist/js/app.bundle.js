@@ -13363,10 +13363,14 @@ function renderAcademicHub(subjectId, selectedChapterId, state2, selectedSet = /
     "Unmarked": { bg: "#f1f5f9", color: "#64748b", label: "\u26AA Unmarked" }
   };
   const currentStyle = statusColors[currentChapterStatus] ?? statusColors["Unmarked"];
+  const studioBadge = selectedSubject2.id === "physics" ? `<a href="#derivations" class="academic-hub-studio-badge" title="Open Derivations Lab">\u{1F52C} Derivations</a>` : selectedSubject2.id === "chemistry" ? `<a href="#roadmaps" class="academic-hub-studio-badge" title="Open Reaction Roadmaps">\u{1F9EA} Roadmaps</a>` : selectedSubject2.id === "math" ? `<a href="#derivations" class="academic-hub-studio-badge" title="Open Math Proofs">\u{1F4D0} Proofs</a>` : selectedSubject2.id === "english" ? `<a href="#english-studio" class="academic-hub-studio-badge" title="Open English Studio">\u270D\uFE0F Literature</a>` : selectedSubject2.id === "pe" ? `<a href="#pe-studio" class="academic-hub-studio-badge" title="Open PE Fixtures">\u{1F3C6} Fixtures</a>` : "";
   const left = `<aside class="academic-chapters">
     <div class="academic-chapters-head">
       <div>
-        <h2>${esc(selectedSubject2.title)}</h2>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <h2>${esc(selectedSubject2.title)}</h2>
+          ${studioBadge}
+        </div>
         <p class="muted">${markedChaptersCount} of ${list.length} chapters marked</p>
       </div>
       <button type="button" class="button quiet outline academic-batch-toggle-btn ${selectedSet.size ? "active" : ""}" data-action="toggle-academic-batch">
@@ -13429,15 +13433,15 @@ function renderAcademicHub(subjectId, selectedChapterId, state2, selectedSet = /
   const chapterSource = academicNodes.find((node) => node.id === selected2.id && node.kind === "chapter")?.source;
   let studioShortcuts = "";
   if (selectedSubject2.id === "physics") {
-    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("book-open")} Derivations Lab</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("copy")} Formulas</a>`;
+    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("book-open")} Derivations Lab</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("copy")} Formulas</a>`;
   } else if (selectedSubject2.id === "chemistry") {
-    studioShortcuts = `<a href="#roadmaps" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("sparkles")} Organic Roadmaps & Distinction</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("copy")} Formulas</a>`;
+    studioShortcuts = `<a href="#roadmaps" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("sparkles")} Organic Roadmaps & Distinction</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("copy")} Formulas</a>`;
   } else if (selectedSubject2.id === "math") {
-    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("book-open")} Math Proofs</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("copy")} Formulas</a>`;
+    studioShortcuts = `<a href="#derivations" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("book-open")} Math Proofs</a><a href="#formulas" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("copy")} Formulas</a>`;
   } else if (selectedSubject2.id === "english") {
-    studioShortcuts = `<a href="#english-studio" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("pencil")} Literature & Writing Studio</a>`;
+    studioShortcuts = `<a href="#english-studio" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("pencil")} Literature & Writing Studio</a>`;
   } else if (selectedSubject2.id === "pe") {
-    studioShortcuts = `<a href="#pe-studio" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("trophy")} Fixtures & Biomechanics</a>`;
+    studioShortcuts = `<a href="#pe-studio" class="button outline" style="font-size:0.8rem;padding:0.4rem 0.85rem;min-height:38px;display:inline-flex;align-items:center;gap:6px;">${icon("trophy")} Fixtures & Biomechanics</a>`;
   }
   const masteryControlBar = `
     <div class="chapter-mastery-banner">
@@ -19728,7 +19732,7 @@ var FormulaHandbookUI = class {
 
           <!-- Search Bar -->
           <div style="margin-top: 20px;">
-            <input id="formula-search-input" type="text" placeholder="Search by formula name, symbol (e.g. Nernst, Gauss, LCR, Lensmaker, Skew)..." value="${this.searchQuery}" style="width: 100%; box-sizing: border-box; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 14px; outline: none; backdrop-filter: blur(8px);">
+            <input id="formula-search-input" type="text" placeholder="Search by formula name, symbol (e.g. Nernst, Gauss, LCR, Lensmaker, Skew)..." value="${this.searchQuery}" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 14px; outline: none; backdrop-filter: blur(8px);">
           </div>
         </header>
 

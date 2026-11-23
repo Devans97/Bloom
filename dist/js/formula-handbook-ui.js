@@ -36,7 +36,7 @@ export class FormulaHandbookUI {
 
           <!-- Search Bar -->
           <div style="margin-top: 20px;">
-            <input id="formula-search-input" type="text" placeholder="Search by formula name, symbol (e.g. Nernst, Gauss, LCR, Lensmaker, Skew)..." value="${this.searchQuery}" style="width: 100%; box-sizing: border-box; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 14px; outline: none; backdrop-filter: blur(8px);">
+            <input id="formula-search-input" type="text" placeholder="Search by formula name, symbol (e.g. Nernst, Gauss, LCR, Lensmaker, Skew)..." value="${this.searchQuery}" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 14px; outline: none; backdrop-filter: blur(8px);">
           </div>
         </header>
 

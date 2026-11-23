@@ -337,6 +337,22 @@
   line-height: 1.35;
 }
 
+.import-review .dialog-actions {
+  position: sticky;
+  bottom: -1px;
+  z-index: 15;
+  background: color-mix(in srgb, var(--paper, #fff9f6) 94%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line, rgba(0,0,0,0.08));
+  padding: 12px 0 6px;
+  margin-top: 14px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+}
+.import-review .dialog-actions button {
+  min-height: 44px;
+}
+
 @media (max-width: 560px) {
   .session-item-header {
     flex-direction: column;
