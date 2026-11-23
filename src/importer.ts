@@ -26,14 +26,15 @@ function getOCR(): Promise<TesseractAPI> {
   });
 }
 
-/** PDF text and OCR run locally; the source file is held in memory and never saved. */
+/** PDF text and OCR run locally or via high-speed backend; the source file is held in memory and never saved. */
 export async function extractDocument(file:File,onProgress:(message:string)=>void=()=>{},signal?:AbortSignal):Promise<string>{
   if(file.size>MAX_BYTES)throw new Error('Choose a file up to 15 MB. Split a larger PDF into smaller files.');
   if(!file.size)throw new Error('That file is empty. Choose another PDF, document or image.');
   const pdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
-  const image=/^image\/(png|jpeg|webp)$/.test(file.type)||/\.(png|jpe?g|webp)$/i.test(file.name);
+  const isHeic=/heic|heif/i.test(file.type)||/\.(heic|heif)$/i.test(file.name);
+  const image=/^image\//i.test(file.type)||/\.(png|jpe?g|webp|heic|heif|gif|bmp|tiff?)$/i.test(file.name)||isHeic;
   const isText=/\.(txt|csv|tsv|json|md)$/i.test(file.name)||/^text\//.test(file.type)||file.type==='application/json';
-  if(!pdf&&!image&&!isText)throw new Error('Choose a PDF, CSV, TXT, JPG, PNG or WebP document. Convert HEIC images to JPG first.');
+  if(!pdf&&!image&&!isText)throw new Error('Choose a PDF, CSV, TXT, JPG, PNG, WebP or HEIC document.');
   if(isText){
     onProgress('Reading document…');
     return await file.text();
@@ -51,7 +52,7 @@ export async function extractDocument(file:File,onProgress:(message:string)=>voi
         onProgress('Preparing on-device text reader…');
         const api=await getOCR();aborted(signal);
         worker=await api.createWorker('eng',1,{
-          workerPath:localAsset('tesseract/worker.min.js'),workerBlobURL:false,
+          workerPath:localAsset('tesseract/worker.min.js'),workerBlobURL:true,
           corePath:localAsset('tesseract-core/'),langPath:localAsset('tessdata/'),
           logger:(event:{status?:string;progress?:number})=>{if(event.status==='recognizing text')onProgress('Reading text on this device… '+Math.round((event.progress??0)*100)+'%');},
         });
@@ -59,13 +60,13 @@ export async function extractDocument(file:File,onProgress:(message:string)=>voi
       aborted(signal);
       const result=await worker.recognize(canvas);aborted(signal);return result.data.text;
     } catch(err) {
-      console.warn('OCR unavailable:', err);
+      console.warn('On-device OCR fallback failed:', err);
       return '';
     }
   }
   try{
     if(image){
-      onProgress('Opening image…');
+      onProgress('Opening photo/image…');
       const url=URL.createObjectURL(file);
       try{
         const img=new Image();img.src=url;await img.decode();aborted(signal);
@@ -75,6 +76,10 @@ export async function extractDocument(file:File,onProgress:(message:string)=>voi
         const ctx=canvas.getContext('2d');if(!ctx)throw new Error('This browser could not open the image. Paste the text instead.');
         ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
         const text=await recognize(canvas);canvas.width=canvas.height=0;return text;
+      }catch(imgErr){
+        // If image decode fails on-device (e.g. unsupported HEIC on older browser), return empty so backend handles it
+        console.warn('Client-side image decode error:', imgErr);
+        return '';
       }finally{URL.revokeObjectURL(url);}
     }
     onProgress('Opening PDF…');
@@ -129,11 +134,22 @@ export function openPlannerImport(host:Host):void{
       <button type="button" class="button quiet outline sample-planner-btn" data-import-sample>⚡ Load CBSE 2026–27 Sample Test Schedule</button>
     </div>
     <p class="import-intro">Upload your test planner or schedule. BLOOM instantly analyzes it on the backend and automatically prepares tailored study sessions leading up to your exams.</p>
-    <label class="import-file" id="planner-dropzone">
-      <span>📄 Drop test planner PDF, CSV or photo here, or <u>click to browse</u></span>
-      <input id="planner-upload" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,text/plain,text/csv,text/tab-separated-values,application/json,.pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.tsv,.json,.md">
-    </label>
-    <small class="muted">PDF, CSV, TXT, JPG, PNG or WebP · Instant backend analysis with zero delay. Your records remain private on this device.</small>
+    
+    <div class="import-file-actions">
+      <label class="button primary import-action-btn" id="camera-upload-btn" title="Take a photo with iPad Camera">
+        📷 Scan with iPad Camera
+        <input id="planner-camera" type="file" accept="image/*" capture="environment" class="sr-file-input">
+      </label>
+      <label class="button outline import-action-btn" id="library-upload-btn" title="Choose Photo from Library or Files">
+        📁 Choose Photo or PDF
+        <input id="planner-upload" type="file" accept="image/*,application/pdf,text/*,.pdf,.csv,.txt,.png,.jpg,.jpeg,.heic,.heif,.webp" class="sr-file-input">
+      </label>
+    </div>
+
+    <div class="import-file" id="planner-dropzone" role="button" tabindex="0" aria-label="Drop test planner PDF, CSV or photo here, or tap to browse">
+      <span class="dropzone-label">📄 Drop test planner PDF, CSV or photo here, or <u>tap to browse</u></span>
+    </div>
+    <small class="muted">Supports iPad Camera snaps, Photos (HEIC/JPG/PNG), PDFs, CSV, and text. Zero delay on-device or backend analysis.</small>
     
     <div class="import-progress" role="status" aria-live="polite" hidden>
       <span class="import-spinner" aria-hidden="true"></span>
@@ -162,7 +178,7 @@ export function openPlannerImport(host:Host):void{
       
       <div id="import-sessions-mount"></div>
       
-      <div class="dialog-actions">
+      <div class="dialog-actions sticky-actions">
         <button type="button" class="button primary" data-import-confirm-sessions>🌟 Add Tests & Schedule Study Sessions</button>
         <button type="button" class="button outline" data-import-confirm>Add Tests Only</button>
       </div>
@@ -170,12 +186,15 @@ export function openPlannerImport(host:Host):void{
   </div>`);
 
   const root=dialog.querySelector<HTMLElement>('.planner-import')!;
-  const upload=root.querySelector<HTMLInputElement>('#planner-upload')!,textInput=root.querySelector<HTMLTextAreaElement>('#planner-text')!;
+  const upload=root.querySelector<HTMLInputElement>('#planner-upload')!, camera=root.querySelector<HTMLInputElement>('#planner-camera');
+  const textInput=root.querySelector<HTMLTextAreaElement>('#planner-text')!;
   const error=root.querySelector<HTMLElement>('#import-error')!,progress=root.querySelector<HTMLElement>('.import-progress')!,review=root.querySelector<HTMLElement>('.import-review')!;
+  const dropzone=root.querySelector<HTMLElement>('#planner-dropzone');
   
   dialog.addEventListener('close',()=>{closed=true;abort?.abort();},{once:true});
   const busy=(reading:boolean,message='Analyzing test planner…')=>{
-    upload.disabled=reading;
+    if(upload) upload.disabled=reading;
+    if(camera) camera.disabled=reading;
     progress.hidden=!reading;
     if(reading)progress.querySelector('p')!.textContent=message;
     root.querySelector<HTMLButtonElement>('[data-import-read]')!.disabled=reading;
@@ -254,6 +273,21 @@ export function openPlannerImport(host:Host):void{
         row.coverage = matchChapterCoverage(row.source || row.title, row.subject);
       }
     }
+    // If no candidate rows were identified from raw text, provide an editable starter row so the student is never blocked!
+    if (rows.length === 0) {
+      const firstLine = raw.split('\n').map(l=>l.trim()).find(Boolean) || 'School Test';
+      rows.push({
+        id: crypto.randomUUID(),
+        title: firstLine.slice(0, 80),
+        day: '',
+        subject: 'physics',
+        coverage: [],
+        source: raw.slice(0, 100),
+        warnings: ['Date needs your confirmation. Please select the date and subject below.'],
+        selected: true
+      });
+      error.textContent = 'Text read from document! Review or enter the test date below.';
+    }
     plannedSessions = generateStudySessionsForTests(rows, host.getState());
     renderRows();
     root.querySelector('#import-rows')?.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -268,10 +302,10 @@ export function openPlannerImport(host:Host):void{
     }
   }
 
-  upload.addEventListener('change',async()=>{
-    const file=upload.files?.[0];if(!file)return;
-    abort?.abort();abort=new AbortController();error.textContent='';
-    busy(true, 'Uploading planner for instant backend analysis…');
+  const handleFile = async (file: File) => {
+    if(!file) return;
+    abort?.abort(); abort=new AbortController(); error.textContent='';
+    busy(true, 'Analyzing test planner…');
     const currentAbort=abort;
 
     try{
@@ -314,9 +348,39 @@ export function openPlannerImport(host:Host):void{
     }catch(e){
       if(!closed&&abort===currentAbort)error.textContent=e instanceof Error?e.message:'Could not read that file. Try another file or paste its text.';
     }finally{
-      if(!closed&&abort===currentAbort){busy(false);upload.value='';}
+      if(!closed&&abort===currentAbort){
+        busy(false);
+        if(upload) upload.value='';
+        if(camera) camera.value='';
+      }
     }
+  };
+
+  upload?.addEventListener('change', () => {
+    if(upload.files?.[0]) void handleFile(upload.files[0]);
   });
+  camera?.addEventListener('change', () => {
+    if(camera.files?.[0]) void handleFile(camera.files[0]);
+  });
+
+  if(dropzone){
+    dropzone.addEventListener('click', () => {
+      upload?.click();
+    });
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-active');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('drag-active');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-active');
+      const file = e.dataTransfer?.files?.[0];
+      if(file) void handleFile(file);
+    });
+  }
 
   root.addEventListener('change',e=>{
     const el=e.target as HTMLInputElement;if(el.name!=='subject')return;

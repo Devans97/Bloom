@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
-import { createReadStream, statSync, existsSync } from 'node:fs';
+import { createReadStream, statSync, existsSync, writeFileSync, unlinkSync, readFileSync } from 'node:fs';
 import { resolve, sep, extname } from 'node:path';
+import { execSync } from 'node:child_process';
+import { createWorker } from 'tesseract.js';
 
 const root = resolve('dist');
 const types = {
@@ -20,7 +22,15 @@ const types = {
   '.traineddata': 'application/octet-stream'
 };
 
-const port = Number(process.env.BLOOM_PORT || 4174);
+const port = Number(process.env.BLOOM_PORT || 4180);
+
+let ocrWorkerPromise = null;
+async function getOCRWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = createWorker('eng');
+  }
+  return await ocrWorkerPromise;
+}
 
 function parseMultipart(buffer, boundary) {
   const parts = [];
@@ -37,8 +47,8 @@ function parseMultipart(buffer, boundary) {
     if (headerEnd !== -1) {
       const headerStr = partBuffer.slice(0, headerEnd).toString('utf-8');
       const data = partBuffer.slice(headerEnd + 4);
-      const filenameMatch = headerStr.match(/filename="([^"]+)"/);
-      const nameMatch = headerStr.match(/name="([^"]+)"/);
+      const filenameMatch = headerStr.match(/filename="([^"]+)"/i);
+      const nameMatch = headerStr.match(/name="([^"]+)"/i);
       parts.push({
         name: nameMatch ? nameMatch[1] : '',
         filename: filenameMatch ? filenameMatch[1] : undefined,
@@ -50,8 +60,51 @@ function parseMultipart(buffer, boundary) {
   return parts;
 }
 
+function isHeicBuffer(buffer, filename = '') {
+  if (/\.(heic|heif)$/i.test(filename)) return true;
+  if (buffer.length > 12) {
+    const brand = buffer.slice(4, 12).toString('ascii');
+    if (brand.includes('ftyp') && (brand.includes('heic') || brand.includes('mif1') || brand.includes('msf1') || brand.includes('heix') || brand.includes('hevc'))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function convertHeicToJpeg(buffer) {
+  const tmpBase = `/tmp/bloom_heic_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const heicPath = `${tmpBase}.heic`;
+  const jpegPath = `${tmpBase}.jpg`;
+  try {
+    writeFileSync(heicPath, buffer);
+    execSync(`/usr/bin/sips -s format jpeg "${heicPath}" --out "${jpegPath}" 2>/dev/null`);
+    if (existsSync(jpegPath)) {
+      const jpegBuf = readFileSync(jpegPath);
+      return jpegBuf;
+    }
+  } catch (err) {
+    console.warn('sips HEIC conversion error:', err);
+  } finally {
+    try { if (existsSync(heicPath)) unlinkSync(heicPath); } catch {}
+    try { if (existsSync(jpegPath)) unlinkSync(jpegPath); } catch {}
+  }
+  return buffer;
+}
+
+function isImageBuffer(buffer, filename = '') {
+  if (/\.(jpe?g|png|webp|gif|tiff?|bmp|heic|heif)$/i.test(filename)) return true;
+  if (buffer.length >= 4) {
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8) return true; // JPEG
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return true; // PNG
+    if (buffer.slice(0, 4).toString('ascii') === 'RIFF') return true; // WebP
+    if (buffer.slice(0, 4).toString('ascii') === 'GIF8') return true; // GIF
+  }
+  return false;
+}
+
 async function extractTextFromBuffer(buffer, filename = '') {
-  const isPdf = /\.pdf$/i.test(filename) || (buffer.length > 4 && buffer.slice(0, 4).toString() === '%PDF');
+  const isPdf = /\.pdf$/i.test(filename) || (buffer.length > 4 && buffer.slice(0, 4).toString('ascii') === '%PDF');
+  
   if (isPdf) {
     try {
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
@@ -79,9 +132,31 @@ async function extractTextFromBuffer(buffer, filename = '') {
         pages.push(pageText);
         page.cleanup();
       }
-      return pages.join('\n\n');
+      const fullText = pages.join('\n\n');
+      if (fullText.replace(/\s/g, '').length >= 20) {
+        return fullText;
+      }
     } catch (e) {
       console.warn('PDF backend parser error:', e);
+    }
+  }
+
+  // Handle HEIC / iPad Camera photos
+  let imageBuffer = buffer;
+  if (isHeicBuffer(buffer, filename)) {
+    imageBuffer = convertHeicToJpeg(buffer);
+  }
+
+  // Handle Images (JPEG, PNG, WebP, converted HEIC) via Tesseract OCR
+  if (isImageBuffer(imageBuffer, filename) || isHeicBuffer(buffer, filename)) {
+    try {
+      const worker = await getOCRWorker();
+      const res = await worker.recognize(imageBuffer);
+      if (res && res.data && res.data.text && res.data.text.trim()) {
+        return res.data.text;
+      }
+    } catch (ocrErr) {
+      console.warn('Tesseract OCR error in backend:', ocrErr);
     }
   }
 
@@ -110,9 +185,9 @@ createServer(async (req, res) => {
       let total = 0;
       req.on('data', chunk => {
         total += chunk.length;
-        if (total > 20 * 1024 * 1024) {
+        if (total > 35 * 1024 * 1024) {
           req.destroy();
-          res.writeHead(413, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'File exceeds 20MB' }));
+          res.writeHead(413, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'File exceeds 35MB limit.' }));
           return;
         }
         chunks.push(chunk);
@@ -144,7 +219,7 @@ createServer(async (req, res) => {
                 text = await extractTextFromBuffer(filePart.data, filename);
               }
             } else {
-              text = buffer.toString('utf-8');
+              text = await extractTextFromBuffer(buffer, filename);
             }
           } else {
             text = await extractTextFromBuffer(buffer, filename);
@@ -154,7 +229,7 @@ createServer(async (req, res) => {
             res.writeHead(400, {
               'Content-Type': 'application/json',
               'Access-Control-Allow-Origin': '*'
-            }).end(JSON.stringify({ error: 'No readable text found in document. Please verify the file or paste planner text.' }));
+            }).end(JSON.stringify({ error: 'No readable text found in document. Please verify the photo or paste planner text.' }));
             return;
           }
 
@@ -225,6 +300,6 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain' }).end('Not found');
   }
-}).listen(port, '127.0.0.1', () => {
-  console.log(`BLOOM fresh server running at: http://127.0.0.1:${port}`);
+}).listen(port, '0.0.0.0', () => {
+  console.log(`BLOOM fresh server running at: http://127.0.0.1:${port} (LAN accessible: http://0.0.0.0:${port})`);
 });

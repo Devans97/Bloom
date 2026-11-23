@@ -4031,9 +4031,10 @@ async function extractDocument(file, onProgress = () => {
   if (file.size > MAX_BYTES) throw new Error("Choose a file up to 15 MB. Split a larger PDF into smaller files.");
   if (!file.size) throw new Error("That file is empty. Choose another PDF, document or image.");
   const pdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-  const image = /^image\/(png|jpeg|webp)$/.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name);
+  const isHeic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
+  const image = /^image\//i.test(file.type) || /\.(png|jpe?g|webp|heic|heif|gif|bmp|tiff?)$/i.test(file.name) || isHeic;
   const isText = /\.(txt|csv|tsv|json|md)$/i.test(file.name) || /^text\//.test(file.type) || file.type === "application/json";
-  if (!pdf && !image && !isText) throw new Error("Choose a PDF, CSV, TXT, JPG, PNG or WebP document. Convert HEIC images to JPG first.");
+  if (!pdf && !image && !isText) throw new Error("Choose a PDF, CSV, TXT, JPG, PNG, WebP or HEIC document.");
   if (isText) {
     onProgress("Reading document\u2026");
     return await file.text();
@@ -4058,7 +4059,7 @@ async function extractDocument(file, onProgress = () => {
         aborted(signal);
         worker = await api.createWorker("eng", 1, {
           workerPath: localAsset("tesseract/worker.min.js"),
-          workerBlobURL: false,
+          workerBlobURL: true,
           corePath: localAsset("tesseract-core/"),
           langPath: localAsset("tessdata/"),
           logger: (event) => {
@@ -4071,13 +4072,13 @@ async function extractDocument(file, onProgress = () => {
       aborted(signal);
       return result.data.text;
     } catch (err2) {
-      console.warn("OCR unavailable:", err2);
+      console.warn("On-device OCR fallback failed:", err2);
       return "";
     }
   }
   try {
     if (image) {
-      onProgress("Opening image\u2026");
+      onProgress("Opening photo/image\u2026");
       const url = URL.createObjectURL(file);
       try {
         const img = new Image();
@@ -4097,6 +4098,9 @@ async function extractDocument(file, onProgress = () => {
         const text2 = await recognize(canvas);
         canvas.width = canvas.height = 0;
         return text2;
+      } catch (imgErr) {
+        console.warn("Client-side image decode error:", imgErr);
+        return "";
       } finally {
         URL.revokeObjectURL(url);
       }
@@ -4168,11 +4172,22 @@ function openPlannerImport(host3) {
       <button type="button" class="button quiet outline sample-planner-btn" data-import-sample>\u26A1 Load CBSE 2026\u201327 Sample Test Schedule</button>
     </div>
     <p class="import-intro">Upload your test planner or schedule. BLOOM instantly analyzes it on the backend and automatically prepares tailored study sessions leading up to your exams.</p>
-    <label class="import-file" id="planner-dropzone">
-      <span>\u{1F4C4} Drop test planner PDF, CSV or photo here, or <u>click to browse</u></span>
-      <input id="planner-upload" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,text/plain,text/csv,text/tab-separated-values,application/json,.pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.tsv,.json,.md">
-    </label>
-    <small class="muted">PDF, CSV, TXT, JPG, PNG or WebP \xB7 Instant backend analysis with zero delay. Your records remain private on this device.</small>
+    
+    <div class="import-file-actions">
+      <label class="button primary import-action-btn" id="camera-upload-btn" title="Take a photo with iPad Camera">
+        \u{1F4F7} Scan with iPad Camera
+        <input id="planner-camera" type="file" accept="image/*" capture="environment" class="sr-file-input">
+      </label>
+      <label class="button outline import-action-btn" id="library-upload-btn" title="Choose Photo from Library or Files">
+        \u{1F4C1} Choose Photo or PDF
+        <input id="planner-upload" type="file" accept="image/*,application/pdf,text/*,.pdf,.csv,.txt,.png,.jpg,.jpeg,.heic,.heif,.webp" class="sr-file-input">
+      </label>
+    </div>
+
+    <div class="import-file" id="planner-dropzone" role="button" tabindex="0" aria-label="Drop test planner PDF, CSV or photo here, or tap to browse">
+      <span class="dropzone-label">\u{1F4C4} Drop test planner PDF, CSV or photo here, or <u>tap to browse</u></span>
+    </div>
+    <small class="muted">Supports iPad Camera snaps, Photos (HEIC/JPG/PNG), PDFs, CSV, and text. Zero delay on-device or backend analysis.</small>
     
     <div class="import-progress" role="status" aria-live="polite" hidden>
       <span class="import-spinner" aria-hidden="true"></span>
@@ -4201,21 +4216,24 @@ function openPlannerImport(host3) {
       
       <div id="import-sessions-mount"></div>
       
-      <div class="dialog-actions">
+      <div class="dialog-actions sticky-actions">
         <button type="button" class="button primary" data-import-confirm-sessions>\u{1F31F} Add Tests & Schedule Study Sessions</button>
         <button type="button" class="button outline" data-import-confirm>Add Tests Only</button>
       </div>
     </section>
   </div>`);
   const root = dialog.querySelector(".planner-import");
-  const upload = root.querySelector("#planner-upload"), textInput = root.querySelector("#planner-text");
+  const upload = root.querySelector("#planner-upload"), camera = root.querySelector("#planner-camera");
+  const textInput = root.querySelector("#planner-text");
   const error2 = root.querySelector("#import-error"), progress2 = root.querySelector(".import-progress"), review2 = root.querySelector(".import-review");
+  const dropzone = root.querySelector("#planner-dropzone");
   dialog.addEventListener("close", () => {
     closed = true;
     abort?.abort();
   }, { once: true });
   const busy2 = (reading, message = "Analyzing test planner\u2026") => {
-    upload.disabled = reading;
+    if (upload) upload.disabled = reading;
+    if (camera) camera.disabled = reading;
     progress2.hidden = !reading;
     if (reading) progress2.querySelector("p").textContent = message;
     root.querySelector("[data-import-read]").disabled = reading;
@@ -4291,6 +4309,20 @@ function openPlannerImport(host3) {
         row2.coverage = matchChapterCoverage(row2.source || row2.title, row2.subject);
       }
     }
+    if (rows.length === 0) {
+      const firstLine = raw.split("\n").map((l) => l.trim()).find(Boolean) || "School Test";
+      rows.push({
+        id: crypto.randomUUID(),
+        title: firstLine.slice(0, 80),
+        day: "",
+        subject: "physics",
+        coverage: [],
+        source: raw.slice(0, 100),
+        warnings: ["Date needs your confirmation. Please select the date and subject below."],
+        selected: true
+      });
+      error2.textContent = "Text read from document! Review or enter the test date below.";
+    }
     plannedSessions = generateStudySessionsForTests(rows, host3.getState());
     renderRows();
     root.querySelector("#import-rows")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -4306,13 +4338,12 @@ function openPlannerImport(host3) {
       row2.coverage = [...el.querySelectorAll('[name="coverage"]:checked')].map((x) => x.value);
     }
   }
-  upload.addEventListener("change", async () => {
-    const file = upload.files?.[0];
+  const handleFile = async (file) => {
     if (!file) return;
     abort?.abort();
     abort = new AbortController();
     error2.textContent = "";
-    busy2(true, "Uploading planner for instant backend analysis\u2026");
+    busy2(true, "Analyzing test planner\u2026");
     const currentAbort = abort;
     try {
       let backendSuccess = false;
@@ -4352,10 +4383,35 @@ function openPlannerImport(host3) {
     } finally {
       if (!closed && abort === currentAbort) {
         busy2(false);
-        upload.value = "";
+        if (upload) upload.value = "";
+        if (camera) camera.value = "";
       }
     }
+  };
+  upload?.addEventListener("change", () => {
+    if (upload.files?.[0]) void handleFile(upload.files[0]);
   });
+  camera?.addEventListener("change", () => {
+    if (camera.files?.[0]) void handleFile(camera.files[0]);
+  });
+  if (dropzone) {
+    dropzone.addEventListener("click", () => {
+      upload?.click();
+    });
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("drag-active");
+    });
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("drag-active");
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("drag-active");
+      const file = e.dataTransfer?.files?.[0];
+      if (file) void handleFile(file);
+    });
+  }
   root.addEventListener("change", (e) => {
     const el = e.target;
     if (el.name !== "subject") return;
