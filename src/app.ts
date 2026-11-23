@@ -662,7 +662,7 @@ function profilePage(){
   <div class="settings-row"><strong>Quick guide</strong>${btn('guide','Open guide','arrow-right')}</div><div class="settings-row"><strong>Show me around</strong>${btn('replay-tour','Replay tour','arrow-right')}</div></div></section><p class="local-note">Preview records and photos stay in this browser. Use sample information on shared devices.</p></div>`;
 }
 function morePage(){return `<div class="page"><div class="intro"><p class="eyebrow">MAKE IT YOURS</p><h1>Your space</h1><p class="muted">All your study tools, without crowding Today.</p></div><div class="space-links">${[['focus','Focus','A little time for one thing.'],['review','Revision & mistakes','Revisit what needs another look.'],['results','Test analysis','Record checked marks and notice progress.'],['insights','Progress','Your actual study activity.'],['derivations','Derivations & Theorems','Master 20 Physics derivations and 10 Math proofs with step marking.'],['roadmaps','Organic Synthesis & Distinction Hub','One-step distinction tests and 29 named organic reactions.'],['practicals','Lab Practicals & Viva','CBSE 30-mark practical manual, salt analysis, titrations & Viva cards.'],['mock-exam','Mock Exam Simulator','Full 3-hour timed board exam with section jumper and rubrics.'],['formulas','Master Formula Handbook','SI units, dimensional formulas, and rapid equation search.'],['soundscape','Cognitive Focus Soundscape','10Hz Alpha and 40Hz Gamma binaural beats focus generator.'],['english-studio','English Literature & Writing Studio','Official rubrics, word counters, character psychology & poetic devices.'],['pe-studio','PE Fixture & Sports Science Studio','Knockout tournament fixture generator, Byes math, postural therapy & PFI.'],['resources','Papers & practicals','Official papers and your school checklist.'],['writing','Answer-writing lab','Practise and review with a marking scheme.'],['letters','Letter to future you','A note for a day you choose.'],['reminders','Reminders','Gentle prompts, on your terms.'],['profile','Profile','Your photo, routine and accessibility.'],['vault','Privacy & sync','Lock, back up and connect your devices.']].map(([id,label,copy])=>`<a href="#${id}" data-nav="${id}"><div><h2>${label}</h2><p>${copy}</p></div>${icon('arrow-right')}</a>`).join('')}</div></div>`;}
-function academicsPage(){return renderAcademicHub(subject,academicChapterId,state);}
+function academicsPage(){return renderAcademicHub(subject,academicChapterId,state,selected);}
 function academicWorkspacePage(){return renderAcademicWorkspace(activeActivityId,state);}
 async function persistAcademicActivity(id:string,status:'paused'|'completed'){
   const definition=activityById(id),activityForm=document.querySelector<HTMLFormElement>('#academic-activity-form');
@@ -1298,13 +1298,74 @@ function review(t:Task, study=false){
 function chapterDialog(id:string){
   const c=chapterById(id); if(!c)return;
   const p=state.progress[id];
-  show(c.title,`<form><label>Study status<select name="status" required>${option('','Choose a status')}${learningStatuses.map(x=>option(x,statusLabel(x),p?.status)).join('')}</select></label>
-  <label>Clarity<select name="rating">${option('','Not rated')}${[...ratings].reverse().map(x=>option(x,x,p?.rating)).join('')}</select></label>
+  let curStatus = p?.status || '';
+  let curRating = p?.rating || '';
+  show(c.title,`<form id="chapter-dialog-form">
+  <div style="margin-bottom:12px;">
+    <label style="display:block;font-size:12px;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;margin-bottom:6px;">Study status</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${learningStatuses.map(x=>`<button type="button" class="button status-pick-btn ${curStatus===x?'primary':'outline'}" data-dialog-status="${x}" style="font-size:12px;padding:6px 10px;min-height:34px;">${statusLabel(x)}</button>`).join('')}
+    </div>
+    <input type="hidden" name="status" value="${curStatus}">
+  </div>
+  <div style="margin-bottom:12px;">
+    <label style="display:block;font-size:12px;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;margin-bottom:6px;">Clarity / Difficulty</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" class="button diff-chip diff-easy ${curRating==='Easy'?'active':''}" data-dialog-rating="Easy" style="font-size:12px;padding:6px 12px;min-height:34px;">🟢 Easy</button>
+      <button type="button" class="button diff-chip diff-okay ${curRating==='Okay'?'active':''}" data-dialog-rating="Okay" style="font-size:12px;padding:6px 12px;min-height:34px;">🟡 Okay</button>
+      <button type="button" class="button diff-chip diff-difficult ${curRating==='Difficult'?'active':''}" data-dialog-rating="Difficult" style="font-size:12px;padding:6px 12px;min-height:34px;">🔴 Difficult</button>
+      <button type="button" class="button quiet" data-dialog-rating="" style="font-size:11px;padding:6px 8px;min-height:34px;">Not rated</button>
+    </div>
+    <input type="hidden" name="rating" value="${curRating}">
+  </div>
   <label>Next review<input name="next" type="date" value="${esc(p?.next??'')}"></label>${errorLine}${actions('Save progress')}</form>`);
-  form().onsubmit=async e=>{
-    e.preventDefault(); const f=new FormData(form()), rating=val(f,'rating') as Rating, status=val(f,'status') as Status;
-    if(!statuses.includes(status))return;
-    const ns=structuredClone(state);ns.progress[id]={...p,status,rating:ratings.includes(rating)?rating:undefined,next:val(f,'next')||undefined};
+
+  const formEl = form();
+  formEl.querySelectorAll<HTMLButtonElement>('[data-dialog-status]').forEach(btn => {
+    btn.onclick = () => {
+      formEl.querySelectorAll('[data-dialog-status]').forEach(b => { b.classList.remove('primary'); b.classList.add('outline'); });
+      btn.classList.remove('outline'); btn.classList.add('primary');
+      curStatus = btn.dataset.dialogStatus as Status;
+      (formEl.querySelector('input[name="status"]') as HTMLInputElement).value = curStatus;
+    };
+  });
+
+  formEl.querySelectorAll<HTMLButtonElement>('[data-dialog-rating]').forEach(btn => {
+    btn.onclick = () => {
+      formEl.querySelectorAll('[data-dialog-rating]').forEach(b => b.classList.remove('active'));
+      const r = btn.dataset.dialogRating || '';
+      if (r) btn.classList.add('active');
+      curRating = r as Rating;
+      (formEl.querySelector('input[name="rating"]') as HTMLInputElement).value = curRating;
+      if (curRating && !curStatus) {
+        curStatus = curRating === 'Difficult' ? 'Needs revision' : curRating === 'Okay' ? 'Learning' : 'Completed';
+        (formEl.querySelector('input[name="status"]') as HTMLInputElement).value = curStatus;
+        const autoBtn = formEl.querySelector<HTMLButtonElement>(`[data-dialog-status="${curStatus}"]`);
+        if (autoBtn) {
+          formEl.querySelectorAll('[data-dialog-status]').forEach(b => { b.classList.remove('primary'); b.classList.add('outline'); });
+          autoBtn.classList.remove('outline'); autoBtn.classList.add('primary');
+        }
+      }
+    };
+  });
+
+  formEl.onsubmit=async e=>{
+    e.preventDefault(); const f=new FormData(formEl);
+    let rating=val(f,'rating') as Rating|'', status=val(f,'status') as Status|'';
+    if (!status && rating) {
+      status = rating === 'Difficult' ? 'Needs revision' : rating === 'Okay' ? 'Learning' : 'Completed';
+    }
+    if(!status || !statuses.includes(status as Status)){
+      error('Choose a study status first.');
+      return;
+    }
+    const ns=structuredClone(state);
+    ns.progress[id]={
+      ...p,
+      status: status as Status,
+      rating: ratings.includes(rating as Rating) ? rating as Rating : undefined,
+      next: val(f,'next')||undefined
+    };
     if(await commit(ns,'Progress saved.')&&rating==='Difficult')requestAnimationFrame(()=>tip('progress','A useful signal','BLOOM will bring this chapter back sooner because you marked it Difficult.'));
   };
 }
@@ -1457,6 +1518,111 @@ document.addEventListener('click',async e=>{
       }
       break;
     }
+    case 'quick-chapter-rating':{
+      const chId=el.dataset.chapter, rating=el.dataset.rating as Rating|'';
+      if(chId){
+        const next=structuredClone(state);
+        const current=next.progress[chId];
+        if(!rating||current?.rating===rating){
+          if(current){
+            delete current.rating;
+            if(!current.status||current.status==='Needs revision')delete next.progress[chId];
+          }
+          await commit(next,'Chapter difficulty reset.');
+        }else{
+          const defaultStatus:Status=current?.status??(rating==='Difficult'?'Needs revision':rating==='Okay'?'Learning':'Completed');
+          next.progress[chId]={
+            ...current,
+            status:defaultStatus,
+            rating,
+            last:today()
+          };
+          await commit(next,`Chapter marked as ${rating}.`);
+        }
+      }
+      break;
+    }
+    case 'quick-topic-status':{
+      const topicId=el.dataset.topic, st=el.dataset.status as AcademicLearningStatus;
+      if(topicId&&st){
+        const next=structuredClone(state);
+        next.academic.topicProgress[topicId]={
+          ...next.academic.topicProgress[topicId],
+          status:st,
+          updatedAt:new Date().toISOString()
+        };
+        await commit(next,`Topic marked as ${st.replace(/-/g,' ')}.`);
+      }
+      break;
+    }
+    case 'quick-topic-rating':{
+      const topicId=el.dataset.topic, rating=el.dataset.rating as Rating|'';
+      if(topicId){
+        const next=structuredClone(state);
+        const current=next.academic.topicProgress[topicId];
+        if(!rating||current?.rating===rating){
+          if(current)delete current.rating;
+          await commit(next,'Topic clarity reset.');
+        }else{
+          next.academic.topicProgress[topicId]={
+            ...current,
+            status:current?.status??'learning',
+            rating,
+            updatedAt:new Date().toISOString()
+          };
+          await commit(next,`Topic marked as ${rating}.`);
+        }
+      }
+      break;
+    }
+    case 'toggle-academic-batch':{
+      if(selected.size)selected.clear();
+      else {
+        const list=chapters.filter(c=>c.subject===subject);
+        list.slice(0,3).forEach(c=>selected.add(c.id));
+      }
+      render();
+      break;
+    }
+    case 'academic-select-all':{
+      const list=chapters.filter(c=>c.subject===subject);
+      if(selected.size===list.length)selected.clear();
+      else list.forEach(c=>selected.add(c.id));
+      render();
+      break;
+    }
+    case 'academic-batch-rating':{
+      const rating=el.dataset.rating as Rating;
+      if(!rating||!selected.size)break;
+      const next=structuredClone(state);
+      const count=selected.size;
+      for(const chId of selected){
+        const current=next.progress[chId];
+        const defaultStatus:Status=current?.status??(rating==='Difficult'?'Needs revision':rating==='Okay'?'Learning':'Completed');
+        next.progress[chId]={
+          ...current,
+          status:defaultStatus,
+          rating,
+          last:today()
+        };
+      }
+      selected.clear();
+      await commit(next,`${count} chapter${count>1?'s':''} marked as ${rating}.`);
+      break;
+    }
+    case 'academic-batch-status':{
+      const st=el.dataset.status as Status;
+      if(!st||!selected.size)break;
+      const next=structuredClone(state);
+      const count=selected.size;
+      for(const chId of selected){
+        if(st==='Pending')delete next.progress[chId];
+        else next.progress[chId]={...next.progress[chId],status:st,last:today()};
+      }
+      selected.clear();
+      await commit(next,`${count} chapter${count>1?'s':''} updated to ${st}.`);
+      break;
+    }
     case 'reveal-recall':{
       const qId=el.dataset.id;
       const keyBox=document.getElementById(`recall-key-${qId}`);
@@ -1479,6 +1645,11 @@ document.addEventListener('change',async e=>{
     if(el.checked)selected.add(el.dataset.select);else selected.delete(el.dataset.select);
     const bulk=document.querySelector<HTMLButtonElement>('[data-action="bulk"]')!;bulk.disabled=!selected.size;bulk.textContent='Apply to '+selected.size;
     document.querySelector('[data-action="select-all"] span')!.textContent=selected.size===chapters.filter(c=>c.subject===subject).length?'Clear selection':'Select all';return;
+  }
+  if(el.dataset.selectAcademic){
+    if(el.checked)selected.add(el.dataset.selectAcademic);else selected.delete(el.dataset.selectAcademic);
+    render();
+    return;
   }
   if(!modal.open)return;
   if(el.name==='subject'&&form().id==='task-form')form().querySelector<HTMLSelectElement>('[name="chapter"]')!.innerHTML=chapterOpts(el.value);

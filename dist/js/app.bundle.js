@@ -12879,15 +12879,66 @@ function sourceBlock(title, url, page2) {
 function topicCard(node, state2) {
   const progress2 = state2.academic.topicProgress[node.id], activity = nextActivityForNode(node.id, progress2, state2.academic.activities), chapterTasks = state2.tasks.filter((task) => task.chapter === node.chapterId), hasLegacyStudyRecord = Object.hasOwn(state2.progress, node.chapterId) || chapterTasks.length > 0;
   const label2 = progress2 ? topicStatus.find(([value]) => value === progress2.status)?.[1] ?? progress2.status : "Unmarked \xB7 unknown";
-  return `<article class="topic-card" data-topic-card="${esc(node.id)}"><div class="topic-card-head"><div><p class="eyebrow">VERIFIED TOPIC</p><h3>${esc(node.title)}</h3></div><span class="status ${progress2 ? "marked" : ""}">${esc(label2)}</span></div><p class="topic-scope">${esc(node.officialScope)}</p>${sourceBlock(node.source.title, node.source.url, node.source.pdfPage)}${hasLegacyStudyRecord && !progress2 ? `<p class="academic-note">Your existing chapter record or task was preserved. Link it to this topic only if you choose; it does not auto-fill this topic status.</p>` : ""}<div class="topic-state-edit"><label>How would you describe your preparation?<select data-topic-status="${esc(node.id)}">${option2("", progress2 ? "Keep current status" : "Choose a status", progress2 ? "__keep" : "")}${topicStatus.map(([value, name]) => option2(value, name, progress2?.status)).join("")}</select></label>${button4("save-topic-status", "Save status", "outline", node.id)}</div>${activity ? `<div class="next-activity-card"><div><p class="eyebrow">NEXT ACTIVITY \xB7 ${esc(activity.kind.replaceAll("-", " "))}</p><h4>${esc(activity.title)}</h4><p>${esc(activity.objective)}</p><small>${activity.estimatedMinutes} min \xB7 ${progress2?.rating ? "Last rating: " + progress2.rating : "No understanding rating yet"}</small></div>${button4("launch-activity", "Open workspace", "primary", activity.id)}</div>` : `<p class="academic-note">${progress2 ? "No further activity is queued from this status and recorded activity. You can update the status or revisit later." : "Record a topic status before BLOOM recommends an activity. Unmarked does not mean unlearned."}</p>`}</article>`;
+  const rating = progress2?.rating;
+  return `<article class="topic-card" data-topic-card="${esc(node.id)}">
+    <div class="topic-card-head">
+      <div>
+        <p class="eyebrow">VERIFIED TOPIC</p>
+        <h3>${esc(node.title)}</h3>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <span class="status ${progress2 ? "marked" : ""}">${esc(label2)}</span>
+        ${rating ? `<span class="topic-rating-tag rating-${rating.toLowerCase()}">\u2605 ${rating}</span>` : ""}
+      </div>
+    </div>
+    <p class="topic-scope">${esc(node.officialScope)}</p>
+    ${sourceBlock(node.source.title, node.source.url, node.source.pdfPage)}
+    ${hasLegacyStudyRecord && !progress2 ? `<p class="academic-note">Your existing chapter record or task was preserved. Link it to this topic only if you choose; it does not auto-fill this topic status.</p>` : ""}
+    
+    <!-- 1-Click Fast Topic Status & Clarity Bar -->
+    <div class="topic-fast-controls">
+      <div class="topic-control-row">
+        <span class="topic-control-title">Status:</span>
+        <div class="topic-pill-group">
+          <button type="button" class="topic-status-pill ${progress2?.status === "not-started" ? "active" : ""}" data-action="quick-topic-status" data-topic="${esc(node.id)}" data-status="not-started">\u26AA Not started</button>
+          <button type="button" class="topic-status-pill ${progress2?.status === "learning" ? "active" : ""}" data-action="quick-topic-status" data-topic="${esc(node.id)}" data-status="learning">\u270D\uFE0F Learning</button>
+          <button type="button" class="topic-status-pill ${progress2?.status === "learned" || progress2?.status === "assessment-ready" ? "active" : ""}" data-action="quick-topic-status" data-topic="${esc(node.id)}" data-status="learned">\u2713 Learned</button>
+          <button type="button" class="topic-status-pill ${progress2?.status === "practice-needed" ? "active" : ""}" data-action="quick-topic-status" data-topic="${esc(node.id)}" data-status="practice-needed">\u{1F504} Practice</button>
+          <button type="button" class="topic-status-pill ${progress2?.status === "revision-due" || progress2?.status === "needs-work" ? "active" : ""}" data-action="quick-topic-status" data-topic="${esc(node.id)}" data-status="revision-due">\u26A0\uFE0F Revision</button>
+        </div>
+      </div>
+      <div class="topic-control-row">
+        <span class="topic-control-title">Clarity:</span>
+        <div class="topic-diff-group">
+          <button type="button" class="diff-btn diff-easy ${rating === "Easy" ? "active" : ""}" data-action="quick-topic-rating" data-topic="${esc(node.id)}" data-rating="Easy">\u{1F7E2} Easy</button>
+          <button type="button" class="diff-btn diff-okay ${rating === "Okay" ? "active" : ""}" data-action="quick-topic-rating" data-topic="${esc(node.id)}" data-rating="Okay">\u{1F7E1} Okay</button>
+          <button type="button" class="diff-btn diff-difficult ${rating === "Difficult" ? "active" : ""}" data-action="quick-topic-rating" data-topic="${esc(node.id)}" data-rating="Difficult">\u{1F534} Difficult</button>
+          ${rating ? `<button type="button" class="button quiet topic-diff-clear" data-action="quick-topic-rating" data-topic="${esc(node.id)}" data-rating="" title="Clear clarity rating">\u2715</button>` : ""}
+        </div>
+      </div>
+    </div>
+
+    <!-- Collapsible Advanced Status Dropdown for Full Taxonomy -->
+    <details class="topic-advanced-state">
+      <summary>Full status dropdown (optional)</summary>
+      <div class="topic-state-edit">
+        <label>Status<select data-topic-status="${esc(node.id)}">${option2("", progress2 ? "Keep current status" : "Choose a status", progress2 ? "__keep" : "")}${topicStatus.map(([value, name]) => option2(value, name, progress2?.status)).join("")}</select></label>
+        ${button4("save-topic-status", "Save status", "outline", node.id)}
+      </div>
+    </details>
+
+    ${activity ? `<div class="next-activity-card"><div><p class="eyebrow">NEXT ACTIVITY \xB7 ${esc(activity.kind.replaceAll("-", " "))}</p><h4>${esc(activity.title)}</h4><p>${esc(activity.objective)}</p><small>${activity.estimatedMinutes} min \xB7 ${progress2?.rating ? "Last rating: " + progress2.rating : "No understanding rating yet"}</small></div>${button4("launch-activity", "Open workspace", "primary", activity.id)}</div>` : `<p class="academic-note">${progress2 ? "No further activity is queued from this status and recorded activity. You can update the status or revisit later." : "Record a topic status before BLOOM recommends an activity. Unmarked does not mean unlearned."}</p>`}
+  </article>`;
 }
-function renderAcademicHub(subjectId, selectedChapterId, state2) {
+function renderAcademicHub(subjectId, selectedChapterId, state2, selectedSet = /* @__PURE__ */ new Set()) {
   const selectedSubject2 = subjectById(subjectId) ?? subjects[0], list = chapters.filter((chapter) => chapter.subject === selectedSubject2.id), selected2 = list.find((chapter) => chapter.id === selectedChapterId) ?? list[0];
   const nodes = academicNodes.filter((node) => node.chapterId === selected2.id && (node.kind === "topic" || node.kind === "concept")), fullyTranscribed = nodes.length > 0;
   const assigned = nodes.length, marked = nodes.filter((node) => state2.academic.topicProgress[node.id]).length;
   const currentUnit = selected2.allocation;
   const currentChapterStatus = state2.progress[selected2.id]?.status ?? "Unmarked";
+  const currentChapterRating = state2.progress[selected2.id]?.rating;
   const weightMarks = cbseChapterWeightageMap[selected2.id] ?? 5;
+  const markedChaptersCount = list.filter((c) => state2.progress[c.id]).length;
   const statusColors = {
     "Exam Ready": { bg: "#dcfce7", color: "#15803d", label: "\u{1F31F} Exam Ready" },
     "Completed": { bg: "#dcfce7", color: "#15803d", label: "\u2713 Completed" },
@@ -12900,21 +12951,69 @@ function renderAcademicHub(subjectId, selectedChapterId, state2) {
     "Unmarked": { bg: "#f1f5f9", color: "#64748b", label: "\u26AA Unmarked" }
   };
   const currentStyle = statusColors[currentChapterStatus] ?? statusColors["Unmarked"];
-  const left = `<aside class="academic-chapters"><div class="section-head"><div><h2>${esc(selectedSubject2.title)}</h2><p class="muted">${list.length} syllabus chapters</p></div></div>${list.map((chapter) => {
-    const st = state2.progress[chapter.id]?.status ?? "Unmarked";
+  const left = `<aside class="academic-chapters">
+    <div class="academic-chapters-head">
+      <div>
+        <h2>${esc(selectedSubject2.title)}</h2>
+        <p class="muted">${markedChaptersCount} of ${list.length} chapters marked</p>
+      </div>
+      <button type="button" class="button quiet outline academic-batch-toggle-btn ${selectedSet.size ? "active" : ""}" data-action="toggle-academic-batch">
+        ${selectedSet.size ? `${selectedSet.size} Selected` : "\u2611 Batch Select"}
+      </button>
+    </div>
+
+    ${selectedSet.size > 0 ? `
+    <div class="academic-batch-bar" role="toolbar" aria-label="Batch actions for selected chapters">
+      <div class="academic-batch-info">
+        <strong>${selectedSet.size} selected</strong>
+        <button type="button" class="batch-select-all-btn" data-action="academic-select-all">${selectedSet.size === list.length ? "Clear all" : "Select all"}</button>
+      </div>
+      <div class="academic-batch-btns">
+        <button type="button" class="bulk-diff-pill diff-difficult" data-action="academic-batch-rating" data-rating="Difficult" title="Mark selected chapters as Difficult">\u{1F534} Difficult</button>
+        <button type="button" class="bulk-diff-pill diff-okay" data-action="academic-batch-rating" data-rating="Okay" title="Mark selected chapters as Okay">\u{1F7E1} Okay</button>
+        <button type="button" class="bulk-diff-pill diff-easy" data-action="academic-batch-rating" data-rating="Easy" title="Mark selected chapters as Easy">\u{1F7E2} Easy</button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-action="academic-batch-status" data-status="Exam Ready">\u{1F31F} Exam Ready</button>
+        <button type="button" class="bulk-diff-pill bulk-status-btn" data-action="academic-batch-status" data-status="Needs revision">\u26A0\uFE0F Needs Rev</button>
+      </div>
+    </div>
+    ` : ""}
+
+    <div class="academic-chapters-list">
+      ${list.map((chapter) => {
+    const p = state2.progress[chapter.id];
+    const st = p?.status ?? "Unmarked";
+    const rating = p?.rating;
     const sc = statusColors[st] ?? statusColors["Unmarked"];
     const wm = cbseChapterWeightageMap[chapter.id] ?? 5;
-    return `<button type="button" class="academic-chapter ${chapter.id === selected2.id ? "selected" : ""}" data-action="academic-chapter" data-value="${esc(chapter.id)}" style="display:flex;flex-direction:column;gap:0.25rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <strong style="font-size:0.88rem;">${esc(chapter.title)}</strong>
-        <span style="font-size:0.7rem;font-weight:700;background:rgba(2,132,199,0.1);color:#0284c7;padding:0.15rem 0.4rem;border-radius:4px;flex-shrink:0;">${wm}M</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <small style="font-size:0.75rem;color:var(--muted,#64748b);">${esc(chapter.allocation)}</small>
-        <span style="font-size:0.68rem;font-weight:700;background:${sc.bg};color:${sc.color};padding:0.1rem 0.35rem;border-radius:3px;">${sc.label}</span>
-      </div>
-    </button>`;
-  }).join("")}</aside>`;
+    const isCurrent = chapter.id === selected2.id;
+    const isChecked = selectedSet.has(chapter.id);
+    return `<div class="academic-chapter-card ${isCurrent ? "selected" : ""} ${isChecked ? "is-batch-checked" : ""}">
+          ${selectedSet.size ? `
+          <label class="chapter-card-check" onclick="event.stopPropagation();" title="Select for batch action">
+            <input type="checkbox" data-select-academic="${chapter.id}" ${isChecked ? "checked" : ""}>
+          </label>` : ""}
+          <button type="button" class="academic-chapter-body" data-action="academic-chapter" data-value="${esc(chapter.id)}">
+            <div class="chapter-card-top-row">
+              <strong class="chapter-card-title">${esc(chapter.title)}</strong>
+              <span class="chapter-card-marks">${wm}M</span>
+            </div>
+            <div class="chapter-card-bottom-row">
+              <small class="chapter-card-sub">${esc(chapter.allocation)}</small>
+              <span class="chapter-card-status" style="background:${sc.bg};color:${sc.color};">${sc.label}</span>
+            </div>
+          </button>
+          <div class="chapter-card-mini-diff" onclick="event.stopPropagation();" title="Quick Rate Difficulty">
+            ${rating ? `<span class="mini-rating-tag rating-${rating.toLowerCase()}">\u2605 ${rating}</span>` : ""}
+            <div class="mini-diff-chips-row">
+              <button type="button" class="mini-diff-chip diff-easy ${rating === "Easy" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${chapter.id}" data-rating="Easy" title="Set Easy">\u{1F7E2}</button>
+              <button type="button" class="mini-diff-chip diff-okay ${rating === "Okay" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${chapter.id}" data-rating="Okay" title="Set Okay">\u{1F7E1}</button>
+              <button type="button" class="mini-diff-chip diff-difficult ${rating === "Difficult" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${chapter.id}" data-rating="Difficult" title="Set Difficult">\u{1F534}</button>
+            </div>
+          </div>
+        </div>`;
+  }).join("")}
+    </div>
+  </aside>`;
   const chapterSource = academicNodes.find((node) => node.id === selected2.id && node.kind === "chapter")?.source;
   let studioShortcuts = "";
   if (selectedSubject2.id === "physics") {
@@ -12929,23 +13028,35 @@ function renderAcademicHub(subjectId, selectedChapterId, state2) {
     studioShortcuts = `<a href="#pe-studio" class="button outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;min-height:32px;">${icon("trophy")} Fixtures & Biomechanics</a>`;
   }
   const masteryControlBar = `
-    <div style="background:var(--surface,#ffffff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.03);">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;border-bottom:1px solid var(--border,#e2e8f0);padding-bottom:0.75rem;">
-        <div>
-          <span style="font-size:0.75rem;font-weight:700;background:#e0f2fe;color:#0369a1;padding:0.2rem 0.5rem;border-radius:4px;text-transform:uppercase;">\u26A1 ${weightMarks} Marks in CBSE Board</span>
-          <span style="font-size:0.75rem;font-weight:700;background:${currentStyle.bg};color:${currentStyle.color};padding:0.2rem 0.5rem;border-radius:4px;margin-left:0.4rem;">${currentStyle.label}</span>
+    <div class="chapter-mastery-banner">
+      <div class="mastery-banner-top">
+        <div class="mastery-badge-group">
+          <span class="weightage-badge">\u26A1 ${weightMarks} Marks in CBSE Board</span>
+          <span class="status-badge" style="background:${currentStyle.bg};color:${currentStyle.color};">${currentStyle.label}</span>
+          ${currentChapterRating ? `<span class="clarity-badge rating-${currentChapterRating.toLowerCase()}">\u2605 ${currentChapterRating}</span>` : '<span class="clarity-badge unrated">\u2606 Clarity: Not rated</span>'}
         </div>
-        <div style="display:flex;gap:0.4rem;align-items:center;">
+        <div class="mastery-studio-shortcuts">
           ${studioShortcuts}
         </div>
       </div>
-      <div>
-        <label style="display:block;font-size:0.8rem;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;margin-bottom:0.5rem;">One-Click Chapter Mastery Tracker:</label>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-          <button type="button" class="button ${currentChapterStatus === "Exam Ready" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Exam Ready" style="font-size:0.85rem;min-height:36px;padding:0.4rem 0.85rem;">\u{1F31F} Exam Ready</button>
-          <button type="button" class="button ${currentChapterStatus === "Practising" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Practising" style="font-size:0.85rem;min-height:36px;padding:0.4rem 0.85rem;">\u{1F504} Practising</button>
-          <button type="button" class="button ${currentChapterStatus === "Needs revision" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Needs revision" style="font-size:0.85rem;min-height:36px;padding:0.4rem 0.85rem;">\u26A0\uFE0F Needs Revision</button>
-          <button type="button" class="button quiet" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Pending" style="font-size:0.82rem;min-height:36px;padding:0.4rem 0.65rem;">Reset</button>
+      <div class="mastery-trackers-grid">
+        <div class="tracker-column">
+          <label class="tracker-title">One-Click Chapter Mastery Tracker:</label>
+          <div class="tracker-btn-row">
+            <button type="button" class="button ${currentChapterStatus === "Exam Ready" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Exam Ready">\u{1F31F} Exam Ready</button>
+            <button type="button" class="button ${currentChapterStatus === "Practising" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Practising">\u{1F504} Practising</button>
+            <button type="button" class="button ${currentChapterStatus === "Needs revision" ? "primary" : "outline"}" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Needs revision">\u26A0\uFE0F Needs Revision</button>
+            <button type="button" class="button quiet reset-btn" data-action="quick-chapter-status" data-chapter="${selected2.id}" data-status="Pending">Reset</button>
+          </div>
+        </div>
+        <div class="tracker-column">
+          <label class="tracker-title">One-Click Chapter Difficulty / Clarity:</label>
+          <div class="tracker-btn-row">
+            <button type="button" class="diff-chip diff-easy ${currentChapterRating === "Easy" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${selected2.id}" data-rating="Easy">\u{1F7E2} Easy</button>
+            <button type="button" class="diff-chip diff-okay ${currentChapterRating === "Okay" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${selected2.id}" data-rating="Okay">\u{1F7E1} Okay</button>
+            <button type="button" class="diff-chip diff-difficult ${currentChapterRating === "Difficult" ? "active" : ""}" data-action="quick-chapter-rating" data-chapter="${selected2.id}" data-rating="Difficult">\u{1F534} Difficult</button>
+            ${currentChapterRating ? `<button type="button" class="button quiet reset-btn" data-action="quick-chapter-rating" data-chapter="${selected2.id}" data-rating="">Reset</button>` : ""}
+          </div>
         </div>
       </div>
     </div>
@@ -23152,7 +23263,7 @@ function morePage() {
   return `<div class="page"><div class="intro"><p class="eyebrow">MAKE IT YOURS</p><h1>Your space</h1><p class="muted">All your study tools, without crowding Today.</p></div><div class="space-links">${[["focus", "Focus", "A little time for one thing."], ["review", "Revision & mistakes", "Revisit what needs another look."], ["results", "Test analysis", "Record checked marks and notice progress."], ["insights", "Progress", "Your actual study activity."], ["derivations", "Derivations & Theorems", "Master 20 Physics derivations and 10 Math proofs with step marking."], ["roadmaps", "Organic Synthesis & Distinction Hub", "One-step distinction tests and 29 named organic reactions."], ["practicals", "Lab Practicals & Viva", "CBSE 30-mark practical manual, salt analysis, titrations & Viva cards."], ["mock-exam", "Mock Exam Simulator", "Full 3-hour timed board exam with section jumper and rubrics."], ["formulas", "Master Formula Handbook", "SI units, dimensional formulas, and rapid equation search."], ["soundscape", "Cognitive Focus Soundscape", "10Hz Alpha and 40Hz Gamma binaural beats focus generator."], ["english-studio", "English Literature & Writing Studio", "Official rubrics, word counters, character psychology & poetic devices."], ["pe-studio", "PE Fixture & Sports Science Studio", "Knockout tournament fixture generator, Byes math, postural therapy & PFI."], ["resources", "Papers & practicals", "Official papers and your school checklist."], ["writing", "Answer-writing lab", "Practise and review with a marking scheme."], ["letters", "Letter to future you", "A note for a day you choose."], ["reminders", "Reminders", "Gentle prompts, on your terms."], ["profile", "Profile", "Your photo, routine and accessibility."], ["vault", "Privacy & sync", "Lock, back up and connect your devices."]].map(([id, label2, copy]) => `<a href="#${id}" data-nav="${id}"><div><h2>${label2}</h2><p>${copy}</p></div>${icon("arrow-right")}</a>`).join("")}</div></div>`;
 }
 function academicsPage() {
-  return renderAcademicHub(subject2, academicChapterId, state);
+  return renderAcademicHub(subject2, academicChapterId, state, selected);
 }
 function academicWorkspacePage() {
   return renderAcademicWorkspace(activeActivityId, state);
@@ -23784,15 +23895,80 @@ function chapterDialog(id) {
   const c = chapterById(id);
   if (!c) return;
   const p = state.progress[id];
-  show(c.title, `<form><label>Study status<select name="status" required>${option3("", "Choose a status")}${learningStatuses.map((x) => option3(x, statusLabel(x), p?.status)).join("")}</select></label>
-  <label>Clarity<select name="rating">${option3("", "Not rated")}${[...ratings].reverse().map((x) => option3(x, x, p?.rating)).join("")}</select></label>
+  let curStatus = p?.status || "";
+  let curRating = p?.rating || "";
+  show(c.title, `<form id="chapter-dialog-form">
+  <div style="margin-bottom:12px;">
+    <label style="display:block;font-size:12px;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;margin-bottom:6px;">Study status</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${learningStatuses.map((x) => `<button type="button" class="button status-pick-btn ${curStatus === x ? "primary" : "outline"}" data-dialog-status="${x}" style="font-size:12px;padding:6px 10px;min-height:34px;">${statusLabel(x)}</button>`).join("")}
+    </div>
+    <input type="hidden" name="status" value="${curStatus}">
+  </div>
+  <div style="margin-bottom:12px;">
+    <label style="display:block;font-size:12px;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;margin-bottom:6px;">Clarity / Difficulty</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" class="button diff-chip diff-easy ${curRating === "Easy" ? "active" : ""}" data-dialog-rating="Easy" style="font-size:12px;padding:6px 12px;min-height:34px;">\u{1F7E2} Easy</button>
+      <button type="button" class="button diff-chip diff-okay ${curRating === "Okay" ? "active" : ""}" data-dialog-rating="Okay" style="font-size:12px;padding:6px 12px;min-height:34px;">\u{1F7E1} Okay</button>
+      <button type="button" class="button diff-chip diff-difficult ${curRating === "Difficult" ? "active" : ""}" data-dialog-rating="Difficult" style="font-size:12px;padding:6px 12px;min-height:34px;">\u{1F534} Difficult</button>
+      <button type="button" class="button quiet" data-dialog-rating="" style="font-size:11px;padding:6px 8px;min-height:34px;">Not rated</button>
+    </div>
+    <input type="hidden" name="rating" value="${curRating}">
+  </div>
   <label>Next review<input name="next" type="date" value="${esc3(p?.next ?? "")}"></label>${errorLine}${actions("Save progress")}</form>`);
-  form().onsubmit = async (e) => {
+  const formEl = form();
+  formEl.querySelectorAll("[data-dialog-status]").forEach((btn2) => {
+    btn2.onclick = () => {
+      formEl.querySelectorAll("[data-dialog-status]").forEach((b) => {
+        b.classList.remove("primary");
+        b.classList.add("outline");
+      });
+      btn2.classList.remove("outline");
+      btn2.classList.add("primary");
+      curStatus = btn2.dataset.dialogStatus;
+      formEl.querySelector('input[name="status"]').value = curStatus;
+    };
+  });
+  formEl.querySelectorAll("[data-dialog-rating]").forEach((btn2) => {
+    btn2.onclick = () => {
+      formEl.querySelectorAll("[data-dialog-rating]").forEach((b) => b.classList.remove("active"));
+      const r = btn2.dataset.dialogRating || "";
+      if (r) btn2.classList.add("active");
+      curRating = r;
+      formEl.querySelector('input[name="rating"]').value = curRating;
+      if (curRating && !curStatus) {
+        curStatus = curRating === "Difficult" ? "Needs revision" : curRating === "Okay" ? "Learning" : "Completed";
+        formEl.querySelector('input[name="status"]').value = curStatus;
+        const autoBtn = formEl.querySelector(`[data-dialog-status="${curStatus}"]`);
+        if (autoBtn) {
+          formEl.querySelectorAll("[data-dialog-status]").forEach((b) => {
+            b.classList.remove("primary");
+            b.classList.add("outline");
+          });
+          autoBtn.classList.remove("outline");
+          autoBtn.classList.add("primary");
+        }
+      }
+    };
+  });
+  formEl.onsubmit = async (e) => {
     e.preventDefault();
-    const f = new FormData(form()), rating = val(f, "rating"), status = val(f, "status");
-    if (!statuses.includes(status)) return;
+    const f = new FormData(formEl);
+    let rating = val(f, "rating"), status = val(f, "status");
+    if (!status && rating) {
+      status = rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed";
+    }
+    if (!status || !statuses.includes(status)) {
+      error("Choose a study status first.");
+      return;
+    }
     const ns = structuredClone(state);
-    ns.progress[id] = { ...p, status, rating: ratings.includes(rating) ? rating : void 0, next: val(f, "next") || void 0 };
+    ns.progress[id] = {
+      ...p,
+      status,
+      rating: ratings.includes(rating) ? rating : void 0,
+      next: val(f, "next") || void 0
+    };
     if (await commit(ns, "Progress saved.") && rating === "Difficult") requestAnimationFrame(() => tip("progress", "A useful signal", "BLOOM will bring this chapter back sooner because you marked it Difficult."));
   };
 }
@@ -24145,6 +24321,111 @@ document.addEventListener("click", async (e) => {
       }
       break;
     }
+    case "quick-chapter-rating": {
+      const chId = el.dataset.chapter, rating = el.dataset.rating;
+      if (chId) {
+        const next = structuredClone(state);
+        const current = next.progress[chId];
+        if (!rating || current?.rating === rating) {
+          if (current) {
+            delete current.rating;
+            if (!current.status || current.status === "Needs revision") delete next.progress[chId];
+          }
+          await commit(next, "Chapter difficulty reset.");
+        } else {
+          const defaultStatus = current?.status ?? (rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed");
+          next.progress[chId] = {
+            ...current,
+            status: defaultStatus,
+            rating,
+            last: today()
+          };
+          await commit(next, `Chapter marked as ${rating}.`);
+        }
+      }
+      break;
+    }
+    case "quick-topic-status": {
+      const topicId = el.dataset.topic, st = el.dataset.status;
+      if (topicId && st) {
+        const next = structuredClone(state);
+        next.academic.topicProgress[topicId] = {
+          ...next.academic.topicProgress[topicId],
+          status: st,
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        await commit(next, `Topic marked as ${st.replace(/-/g, " ")}.`);
+      }
+      break;
+    }
+    case "quick-topic-rating": {
+      const topicId = el.dataset.topic, rating = el.dataset.rating;
+      if (topicId) {
+        const next = structuredClone(state);
+        const current = next.academic.topicProgress[topicId];
+        if (!rating || current?.rating === rating) {
+          if (current) delete current.rating;
+          await commit(next, "Topic clarity reset.");
+        } else {
+          next.academic.topicProgress[topicId] = {
+            ...current,
+            status: current?.status ?? "learning",
+            rating,
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          };
+          await commit(next, `Topic marked as ${rating}.`);
+        }
+      }
+      break;
+    }
+    case "toggle-academic-batch": {
+      if (selected.size) selected.clear();
+      else {
+        const list = chapters.filter((c) => c.subject === subject2);
+        list.slice(0, 3).forEach((c) => selected.add(c.id));
+      }
+      render();
+      break;
+    }
+    case "academic-select-all": {
+      const list = chapters.filter((c) => c.subject === subject2);
+      if (selected.size === list.length) selected.clear();
+      else list.forEach((c) => selected.add(c.id));
+      render();
+      break;
+    }
+    case "academic-batch-rating": {
+      const rating = el.dataset.rating;
+      if (!rating || !selected.size) break;
+      const next = structuredClone(state);
+      const count = selected.size;
+      for (const chId of selected) {
+        const current = next.progress[chId];
+        const defaultStatus = current?.status ?? (rating === "Difficult" ? "Needs revision" : rating === "Okay" ? "Learning" : "Completed");
+        next.progress[chId] = {
+          ...current,
+          status: defaultStatus,
+          rating,
+          last: today()
+        };
+      }
+      selected.clear();
+      await commit(next, `${count} chapter${count > 1 ? "s" : ""} marked as ${rating}.`);
+      break;
+    }
+    case "academic-batch-status": {
+      const st = el.dataset.status;
+      if (!st || !selected.size) break;
+      const next = structuredClone(state);
+      const count = selected.size;
+      for (const chId of selected) {
+        if (st === "Pending") delete next.progress[chId];
+        else next.progress[chId] = { ...next.progress[chId], status: st, last: today() };
+      }
+      selected.clear();
+      await commit(next, `${count} chapter${count > 1 ? "s" : ""} updated to ${st}.`);
+      break;
+    }
     case "reveal-recall": {
       const qId = el.dataset.id;
       const keyBox = document.getElementById(`recall-key-${qId}`);
@@ -24190,6 +24471,12 @@ document.addEventListener("change", async (e) => {
     bulk.disabled = !selected.size;
     bulk.textContent = "Apply to " + selected.size;
     document.querySelector('[data-action="select-all"] span').textContent = selected.size === chapters.filter((c) => c.subject === subject2).length ? "Clear selection" : "Select all";
+    return;
+  }
+  if (el.dataset.selectAcademic) {
+    if (el.checked) selected.add(el.dataset.selectAcademic);
+    else selected.delete(el.dataset.selectAcademic);
+    render();
     return;
   }
   if (!modal.open) return;
