@@ -71,22 +71,22 @@ function isHeicBuffer(buffer, filename = '') {
   return false;
 }
 
-function convertHeicToJpeg(buffer) {
+function convertHeicToPng(buffer) {
   const tmpBase = `/tmp/bloom_heic_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const heicPath = `${tmpBase}.heic`;
-  const jpegPath = `${tmpBase}.jpg`;
+  const pngPath = `${tmpBase}.png`;
   try {
     writeFileSync(heicPath, buffer);
-    execSync(`/usr/bin/sips -s format jpeg "${heicPath}" --out "${jpegPath}" 2>/dev/null`);
-    if (existsSync(jpegPath)) {
-      const jpegBuf = readFileSync(jpegPath);
-      return jpegBuf;
+    execSync(`/usr/bin/sips -s format png "${heicPath}" --out "${pngPath}" 2>/dev/null`);
+    if (existsSync(pngPath)) {
+      const pngBuf = readFileSync(pngPath);
+      return pngBuf;
     }
   } catch (err) {
     console.warn('sips HEIC conversion error:', err);
   } finally {
     try { if (existsSync(heicPath)) unlinkSync(heicPath); } catch {}
-    try { if (existsSync(jpegPath)) unlinkSync(jpegPath); } catch {}
+    try { if (existsSync(pngPath)) unlinkSync(pngPath); } catch {}
   }
   return buffer;
 }
@@ -144,7 +144,7 @@ async function extractTextFromBuffer(buffer, filename = '') {
   // Handle HEIC / iPad Camera photos
   let imageBuffer = buffer;
   if (isHeicBuffer(buffer, filename)) {
-    imageBuffer = convertHeicToJpeg(buffer);
+    imageBuffer = convertHeicToPng(buffer);
   }
 
   // Handle Images (JPEG, PNG, WebP, converted HEIC) via Tesseract OCR
