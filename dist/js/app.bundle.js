@@ -3797,13 +3797,206 @@ function parsePlannerText(text2) {
 }
 var plannerIdentity = (test2) => `${test2.day}|${test2.subject}|${test2.title.trim().toLocaleLowerCase().replace(/\s+/g, " ")}`;
 
+// src/planner-analyzer.ts
+var chapterKeywords = {
+  // Physics
+  "physics-1-1": [/electric\s*charges?/i, /coulomb/i, /gauss\s*law/i, /electric\s*flux/i, /electrostatics?/i],
+  "physics-1-2": [/electrostatic\s*potential/i, /capacitan(?:ce|tor)/i, /dielectric/i],
+  "physics-1-3": [/current\s*electricity/i, /ohm'?s?\s*law/i, /kirchhoff/i, /potentiometer/i, /wheatstone/i],
+  "physics-2-1": [/moving\s*charges/i, /magnetic\s*fields?/i, /biot\s*savart/i, /ampere'?s?\s*circuital/i, /lorentz/i, /cyclotron/i],
+  "physics-2-2": [/magnetism\s*and\s*matter/i, /magnetic\s*dipole/i, /earth'?s?\s*magnetism/i, /hysteresis/i],
+  "physics-2-3": [/electromagnetic\s*induction/i, /emi\b/i, /faraday/i, /lenz'?s?\s*law/i, /eddy\s*currents?/i],
+  "physics-2-4": [/alternating\s*current/i, /ac\s*circuits?/i, /transformer/i, /lcr\s*circuit/i, /resonance/i],
+  "physics-3-1": [/electromagnetic\s*waves/i, /em\s*waves/i, /displacement\s*current/i, /maxwell/i],
+  "physics-3-2": [/ray\s*optics/i, /refraction/i, /reflection/i, /lenses/i, /mirrors?/i, /microscope/i, /telescope/i, /prism/i],
+  "physics-3-3": [/wave\s*optics/i, /huygens/i, /interference/i, /diffraction/i, /young'?s?\s*double\s*slit/i, /polarisation/i],
+  "physics-4-1": [/dual\s*nature/i, /photoelectric/i, /de\s*broglie/i, /work\s*function/i],
+  "physics-4-2": [/atoms?\b/i, /bohr'?s?\s*model/i, /rutherford/i, /hydrogen\s*spectrum/i],
+  "physics-4-3": [/nuclei\b/i, /nuclear\s*(?:binding|force|fission|fusion)/i, /mass\s*defect/i, /radioactivity/i],
+  "physics-5-1": [/semiconductors?/i, /p-n\s*junction/i, /diodes?/i, /rectifiers?/i, /logic\s*gates?/i, /electronic\s*devices/i],
+  // Chemistry
+  "chemistry-1-1": [/solutions?\b/i, /raoult'?s?\s*law/i, /colligative/i, /osmotic\s*pressure/i, /molarity/i, /molality/i, /van'?t\s*hoff/i],
+  "chemistry-2-1": [/electrochemistry/i, /nernst/i, /galvanic\s*cell/i, /kohlrausch/i, /electrolysis/i, /faraday'?s?\s*laws?/i],
+  "chemistry-3-1": [/chemical\s*kinetics/i, /rate\s*of\s*reaction/i, /arrhenius/i, /order\s*of\s*reaction/i, /activation\s*energy/i],
+  "chemistry-4-1": [/d[- ]and\s*f[- ]block/i, /transition\s*elements/i, /lanthanoid/i, /actinoid/i],
+  "chemistry-5-1": [/coordination\s*compounds?/i, /ligands?/i, /werner/i, /crystal\s*field/i, /isomerism/i],
+  "chemistry-6-1": [/haloalkanes?/i, /haloarenes?/i, /sn1/i, /sn2/i, /nucleophilic\s*substitution/i],
+  "chemistry-7-1": [/alcohols?/i, /phenols?/i, /ethers?/i, /grignard/i, /kolbe/i, /reimer\s*tiemann/i],
+  "chemistry-8-1": [/aldehydes?/i, /ketones?/i, /carboxylic\s*acids?/i, /aldol/i, /cannizzaro/i, /clemmensen/i],
+  "chemistry-9-1": [/amines?\b/i, /diazonium/i, /carbylamine/i, /gabriel\s*phthalimide/i, /hoffmann/i],
+  "chemistry-10-1": [/biomolecules?/i, /carbohydrates?/i, /glucose/i, /proteins?/i, /amino\s*acids?/i, /dna\b/i, /rna\b/i, /vitamins?/i],
+  // Mathematics
+  "math-1-1": [/relations?\s*and\s*functions?/i, /equivalence\s*relation/i, /one-one/i, /onto/i],
+  "math-1-2": [/inverse\s*trig(?:onometric)?/i, /principal\s*value/i],
+  "math-2-1": [/matrices\b|matrix\b/i, /matrix\s*multiplication/i, /transpose/i, /symmetric\s*matrix/i],
+  "math-2-2": [/determinants?\b/i, /adjoint/i, /cramer/i, /inverse\s*of\s*matrix/i],
+  "math-3-1": [/continuity/i, /differentiability/i, /derivatives?\b/i, /chain\s*rule/i, /logarithmic\s*diff/i],
+  "math-3-2": [/applications?\s*of\s*derivatives?/i, /aod\b/i, /maxima\s*and\s*minima/i, /tangents?\s*and\s*normals?/i, /rate\s*of\s*change/i],
+  "math-3-3": [/integrals?\b|integration\b/i, /calculus\b/i, /definite\s*integrals?/i, /by\s*parts/i, /partial\s*fractions?/i],
+  "math-3-4": [/applications?\s*of\s*integrals?/i, /area\s*under\s*(?:the\s*)?curve/i],
+  "math-3-5": [/differential\s*equations?/i, /integrating\s*factor/i, /variable\s*separable/i, /homogeneous\s*diff/i],
+  "math-4-1": [/vectors?\b|vector\s*algebra/i, /dot\s*product/i, /cross\s*product/i, /scalar\s*product/i],
+  "math-4-2": [/three[- ]dimensional\s*geometry|3d\s*geometry/i, /direction\s*cosines/i, /equation\s*of\s*line/i, /plane/i],
+  "math-5-1": [/linear\s*programming/i, /lpp\b/i, /objective\s*function/i, /feasible\s*region/i],
+  "math-6-1": [/probability\b/i, /bayes'?\s*theorem/i, /conditional\s*probability/i, /independent\s*events/i],
+  // Physical Education
+  "pe-1": [/sporting\s*events/i, /planning\s*in\s*sports/i, /fixtures?/i, /knockout/i, /league\s*tournament/i],
+  "pe-2": [/children\s*and\s*women/i, /female\s*athlete\s*triad/i, /postural\s*deformities/i],
+  "pe-3": [/yoga\b/i, /asanas?\b/i, /lifestyle\s*disease/i, /obesity/i, /diabetes/i, /asthma/i, /hypertension/i],
+  "pe-4": [/cwsn\b/i, /special\s*needs/i, /adaptive\s*physical/i],
+  "pe-5": [/sports\s*and\s*nutrition/i, /balanced\s*diet/i, /nutritive\s*components/i],
+  "pe-6": [/test\s*and\s*measurement/i, /fitness\s*tests?/i, /sai\s*khelo/i, /barrow/i, /rikli\s*and\s*jones/i],
+  "pe-7": [/physiology\s*(?:and|&)\s*injuries/i, /sports\s*injuries/i, /first\s*aid/i, /price\s*protocol/i],
+  "pe-8": [/biomechanics/i, /newton'?s?\s*laws/i, /levers?\b/i, /equilibrium/i, /projectile/i, /friction/i],
+  "pe-9": [/psychology\s*(?:and|&)\s*sports/i, /personality/i, /motivation/i, /aggression/i],
+  "pe-10": [/training\s*in\s*sports/i, /strength/i, /endurance/i, /speed/i, /flexibility/i, /circuit\s*training/i],
+  // English Literature
+  "english-lit-1": [/last\s*lesson/i],
+  "english-lit-2": [/lost\s*spring/i],
+  "english-lit-3": [/deep\s*water/i],
+  "english-lit-4": [/rattrap/i],
+  "english-lit-5": [/indigo/i],
+  "english-lit-6": [/poets\s*and\s*pancakes/i],
+  "english-lit-7": [/interview/i],
+  "english-lit-8": [/going\s*places/i],
+  "english-lit-9": [/my\s*mother\s*at\s*sixty[- ]six/i],
+  "english-lit-10": [/keeping\s*quiet/i],
+  "english-lit-11": [/thing\s*of\s*beauty/i],
+  "english-lit-12": [/roadside\s*stand/i],
+  "english-lit-13": [/aunt\s*jennifer/i],
+  "english-lit-14": [/third\s*level/i],
+  "english-lit-15": [/tiger\s*king/i],
+  "english-lit-16": [/journey\s*to\s*the\s*end/i],
+  "english-lit-17": [/enemy/i],
+  "english-lit-18": [/on\s*the\s*face\s*of\s*it/i],
+  "english-lit-19": [/memories\s*of\s*childhood/i]
+};
+function matchChapterCoverage(text2, subjectId) {
+  const subjectChapters = chapters.filter((c) => c.subject === subjectId);
+  const matched = /* @__PURE__ */ new Set();
+  for (const c of subjectChapters) {
+    const titleRe = new RegExp("\\b" + c.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+    if (titleRe.test(text2)) {
+      matched.add(c.id);
+      continue;
+    }
+    const patterns = chapterKeywords[c.id];
+    if (patterns && patterns.some((re) => re.test(text2))) {
+      matched.add(c.id);
+    }
+  }
+  return [...matched];
+}
+function addDays(isoDate, days2) {
+  if (!validPlannerDate(isoDate)) return isoDate;
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days2));
+  return [
+    String(dt.getUTCFullYear()).padStart(4, "0"),
+    String(dt.getUTCMonth() + 1).padStart(2, "0"),
+    String(dt.getUTCDate()).padStart(2, "0")
+  ].join("-");
+}
+function dayDiff(a, b) {
+  if (!validPlannerDate(a) || !validPlannerDate(b)) return 0;
+  const dtA = (/* @__PURE__ */ new Date(a + "T00:00:00Z")).getTime();
+  const dtB = (/* @__PURE__ */ new Date(b + "T00:00:00Z")).getTime();
+  return Math.round((dtB - dtA) / (1e3 * 60 * 60 * 24));
+}
+function generateStudySessionsForTests(tests, state2, fromDate) {
+  const today2 = fromDate || (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const tasks2 = [];
+  const existingKeys = new Set(
+    (state2?.tasks || []).map((t) => `${t.day}|${t.subject}|${t.title.toLowerCase().trim()}`)
+  );
+  const defaultSlots = ["16:00", "17:30", "19:00", "20:30"];
+  for (const test2 of tests) {
+    if (!validPlannerDate(test2.day) || !test2.subject) continue;
+    const diff = dayDiff(today2, test2.day);
+    if (diff < 0) continue;
+    const subjectChapters = chapters.filter((c) => c.subject === test2.subject);
+    const coveredIds = test2.coverage && test2.coverage.length > 0 ? test2.coverage : subjectChapters.slice(0, 2).map((c) => c.id);
+    const primaryChapter = subjectChapters.find((c) => c.id === coveredIds[0]) || subjectChapters[0];
+    const secondaryChapter = subjectChapters.find((c) => c.id === coveredIds[1]) || primaryChapter;
+    const testName = test2.title.replace(/^[\d/.\- ]+\s*/, "").trim() || `${test2.subject.toUpperCase()} Test`;
+    const prepDay1 = diff > 0 ? addDays(test2.day, -1) : test2.day;
+    const task1 = {
+      id: crypto.randomUUID(),
+      title: `${testName} \xB7 Formula & Derivations Sprint`,
+      day: prepDay1,
+      time: defaultSlots[0],
+      minutes: 45,
+      subject: test2.subject,
+      chapter: primaryChapter?.id || "",
+      priority: "High",
+      due: test2.day,
+      done: false,
+      reason: `Final high-yield revision for upcoming ${testName}`
+    };
+    const key1 = `${task1.day}|${task1.subject}|${task1.title.toLowerCase().trim()}`;
+    if (!existingKeys.has(key1)) {
+      tasks2.push(task1);
+      existingKeys.add(key1);
+    }
+    if (diff >= 2) {
+      const prepDay2 = addDays(test2.day, -2);
+      const task2 = {
+        id: crypto.randomUUID(),
+        title: `${testName} \xB7 Board PYQs & Numerical Mastery`,
+        day: prepDay2,
+        time: defaultSlots[1],
+        minutes: 45,
+        subject: test2.subject,
+        chapter: secondaryChapter?.id || primaryChapter?.id || "",
+        priority: "High",
+        due: test2.day,
+        done: false,
+        reason: `Exam-pattern question practice for ${testName}`
+      };
+      const key2 = `${task2.day}|${task2.subject}|${task2.title.toLowerCase().trim()}`;
+      if (!existingKeys.has(key2)) {
+        tasks2.push(task2);
+        existingKeys.add(key2);
+      }
+    }
+    if (diff >= 4) {
+      const prepDay3 = addDays(test2.day, -4);
+      const task3 = {
+        id: crypto.randomUUID(),
+        title: `${testName} \xB7 Core NCERT Concepts & Diagrams`,
+        day: prepDay3,
+        time: defaultSlots[2],
+        minutes: 45,
+        subject: test2.subject,
+        chapter: primaryChapter?.id || "",
+        priority: "High",
+        due: test2.day,
+        done: false,
+        reason: `Foundational concept review for ${testName}`
+      };
+      const key3 = `${task3.day}|${task3.subject}|${task3.title.toLowerCase().trim()}`;
+      if (!existingKeys.has(key3)) {
+        tasks2.push(task3);
+        existingKeys.add(key3);
+      }
+    }
+  }
+  return tasks2.sort((a, b) => a.day.localeCompare(b.day) || a.time.localeCompare(b.time));
+}
+var SAMPLE_CBSE_PLANNER = `CBSE CLASS XII 2026-27 ASSESSMENT SCHEDULE
+28/11/2026 Physics Periodic Test: Electric Charges and Fields, Electrostatic Potential
+02/12/2026 Chemistry Unit Test: Solutions and Electrochemistry
+05/12/2026 Mathematics Assessment: Matrices and Determinants
+09/12/2026 Physical Education Assessment: Management of Sporting Events and Yoga
+12/12/2026 English Core Term Paper: The Last Lesson and Notice Writing`;
+
 // src/host.ts
 var esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // src/importer.ts
 var localAsset = (path) => new URL("../vendor/" + path, import.meta.url).href;
-var MAX_BYTES = 12 * 1024 * 1024;
-var MAX_PAGES = 12;
+var MAX_BYTES = 15 * 1024 * 1024;
+var MAX_PAGES = 15;
 var ocrScript;
 var aborted = (signal) => {
   if (signal?.aborted) throw new DOMException("Reading cancelled.", "AbortError");
@@ -3835,11 +4028,16 @@ function getOCR() {
 }
 async function extractDocument(file, onProgress = () => {
 }, signal) {
-  if (file.size > MAX_BYTES) throw new Error("Choose a file up to 12 MB. Split a larger PDF into smaller files.");
-  if (!file.size) throw new Error("That file is empty. Choose another PDF or image.");
+  if (file.size > MAX_BYTES) throw new Error("Choose a file up to 15 MB. Split a larger PDF into smaller files.");
+  if (!file.size) throw new Error("That file is empty. Choose another PDF, document or image.");
   const pdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
   const image = /^image\/(png|jpeg|webp)$/.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name);
-  if (!pdf && !image) throw new Error("Choose a PDF, JPG, PNG or WebP. Convert HEIC images to JPG first.");
+  const isText = /\.(txt|csv|tsv|json|md)$/i.test(file.name) || /^text\//.test(file.type) || file.type === "application/json";
+  if (!pdf && !image && !isText) throw new Error("Choose a PDF, CSV, TXT, JPG, PNG or WebP document. Convert HEIC images to JPG first.");
+  if (isText) {
+    onProgress("Reading document\u2026");
+    return await file.text();
+  }
   aborted(signal);
   let worker;
   let pdfTask;
@@ -3853,24 +4051,29 @@ async function extractDocument(file, onProgress = () => {
   signal?.addEventListener("abort", cancel, { once: true });
   async function recognize(canvas) {
     aborted(signal);
-    if (!worker) {
-      onProgress("Preparing the on-device text reader\u2026");
-      const api = await getOCR();
+    try {
+      if (!worker) {
+        onProgress("Preparing on-device text reader\u2026");
+        const api = await getOCR();
+        aborted(signal);
+        worker = await api.createWorker("eng", 1, {
+          workerPath: localAsset("tesseract/worker.min.js"),
+          workerBlobURL: false,
+          corePath: localAsset("tesseract-core/"),
+          langPath: localAsset("tessdata/"),
+          logger: (event) => {
+            if (event.status === "recognizing text") onProgress("Reading text on this device\u2026 " + Math.round((event.progress ?? 0) * 100) + "%");
+          }
+        });
+      }
       aborted(signal);
-      worker = await api.createWorker("eng", 1, {
-        workerPath: localAsset("tesseract/worker.min.js"),
-        workerBlobURL: false,
-        corePath: localAsset("tesseract-core/"),
-        langPath: localAsset("tessdata/"),
-        logger: (event) => {
-          if (event.status === "recognizing text") onProgress("Reading text on this device\u2026 " + Math.round((event.progress ?? 0) * 100) + "%");
-        }
-      });
+      const result = await worker.recognize(canvas);
+      aborted(signal);
+      return result.data.text;
+    } catch (err2) {
+      console.warn("OCR unavailable:", err2);
+      return "";
     }
-    aborted(signal);
-    const result = await worker.recognize(canvas);
-    aborted(signal);
-    return result.data.text;
   }
   try {
     if (image) {
@@ -3912,7 +4115,7 @@ async function extractDocument(file, onProgress = () => {
     });
     const doc = await pdfTask.promise;
     documentProxy = doc;
-    if (doc.numPages > MAX_PAGES) throw new Error("This PDF has " + doc.numPages + " pages. Read up to 12 pages at once; split the PDF and import each part.");
+    if (doc.numPages > MAX_PAGES) throw new Error("This PDF has " + doc.numPages + " pages. Read up to 15 pages at once; split the PDF and import each part.");
     const pages2 = [];
     for (let n = 1; n <= doc.numPages; n++) {
       aborted(signal);
@@ -3935,8 +4138,9 @@ async function extractDocument(file, onProgress = () => {
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Could not open the scanned page. Upload a clear JPG instead.");
         await page2.render({ canvasContext: ctx, canvas, viewport, background: "#ffffff" }).promise;
-        text2 = await recognize(canvas);
+        const ocrText = await recognize(canvas);
         canvas.width = canvas.height = 0;
+        if (ocrText) text2 = ocrText;
       }
       pages2.push(text2);
       page2.cleanup();
@@ -3958,8 +4162,51 @@ async function extractDocument(file, onProgress = () => {
 var subjectOptions = (value) => '<option value="">Choose subject</option>' + subjects.map((s) => `<option value="${s.id}"${s.id === value ? " selected" : ""}>${esc(s.title)}</option>`).join("");
 var rowKey = (el) => el.closest("[data-import-row]")?.dataset.importRow ?? "";
 function openPlannerImport(host3) {
-  let raw = "", rows = [], abort, closed = false;
-  const dialog = host3.show("Upload test planner", `<div class="planner-import"><p class="import-intro">Choose your monthly planner. BLOOM reads it on this device; you review every date and subject before adding anything.</p><label class="import-file">Choose PDF or photo<input id="planner-upload" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp"></label><small class="muted">PDF, JPG, PNG or WebP \xB7 up to 12 MB \xB7 PDFs up to 12 pages. The original file is not stored or sent anywhere.</small><div class="import-progress" role="status" aria-live="polite" hidden><span class="import-spinner" aria-hidden="true"></span><p></p><button type="button" class="button outline" data-import-cancel>Cancel reading</button></div><p class="form-error" id="import-error" role="alert"></p><details class="import-text"><summary>Paste or correct planner text</summary><label>Planner text<textarea id="planner-text" rows="8" placeholder="Paste the dates and subjects from your planner"></textarea></label><button type="button" class="button outline" data-import-read>Find tests in text</button></details><section class="import-review" hidden><div class="section-head"><h3>Check the tests</h3><button type="button" class="button quiet" data-import-add>Add a row</button></div><p class="muted">Correct any reading errors, then choose which tests to add. Leave coverage blank if it is not supplied.</p><div id="import-rows"></div><div class="dialog-actions"><button type="button" class="button primary" data-import-confirm>Add selected tests</button></div></section></div>`);
+  let raw = "", rows = [], plannedSessions = [], abort, closed = false;
+  const dialog = host3.show("Upload test planner", `<div class="planner-import">
+    <div class="import-quick-sample">
+      <button type="button" class="button quiet outline sample-planner-btn" data-import-sample>\u26A1 Load CBSE 2026\u201327 Sample Test Schedule</button>
+    </div>
+    <p class="import-intro">Upload your test planner or schedule. BLOOM instantly analyzes it on the backend and automatically prepares tailored study sessions leading up to your exams.</p>
+    <label class="import-file" id="planner-dropzone">
+      <span>\u{1F4C4} Drop test planner PDF, CSV or photo here, or <u>click to browse</u></span>
+      <input id="planner-upload" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,text/plain,text/csv,text/tab-separated-values,application/json,.pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.tsv,.json,.md">
+    </label>
+    <small class="muted">PDF, CSV, TXT, JPG, PNG or WebP \xB7 Instant backend analysis with zero delay. Your records remain private on this device.</small>
+    
+    <div class="import-progress" role="status" aria-live="polite" hidden>
+      <span class="import-spinner" aria-hidden="true"></span>
+      <p>Analyzing test planner\u2026</p>
+      <button type="button" class="button outline" data-import-cancel>Cancel reading</button>
+    </div>
+    
+    <p class="form-error" id="import-error" role="alert"></p>
+    
+    <details class="import-text">
+      <summary>Paste or view analyzed planner text</summary>
+      <label>Planner text<textarea id="planner-text" rows="7" placeholder="Paste test dates, subjects and chapters from your planner"></textarea></label>
+      <button type="button" class="button outline" data-import-read>Re-analyze text</button>
+    </details>
+    
+    <section class="import-review" hidden>
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">EXAM SCHEDULE</p>
+          <h3>Check the tests</h3>
+        </div>
+        <button type="button" class="button quiet" data-import-add>+ Add a row</button>
+      </div>
+      <p class="muted">Review test dates and covered chapters. Uncheck any row you do not wish to include.</p>
+      <div id="import-rows"></div>
+      
+      <div id="import-sessions-mount"></div>
+      
+      <div class="dialog-actions">
+        <button type="button" class="button primary" data-import-confirm-sessions>\u{1F31F} Add Tests & Schedule Study Sessions</button>
+        <button type="button" class="button outline" data-import-confirm>Add Tests Only</button>
+      </div>
+    </section>
+  </div>`);
   const root = dialog.querySelector(".planner-import");
   const upload = root.querySelector("#planner-upload"), textInput = root.querySelector("#planner-text");
   const error2 = root.querySelector("#import-error"), progress2 = root.querySelector(".import-progress"), review2 = root.querySelector(".import-review");
@@ -3967,14 +4214,69 @@ function openPlannerImport(host3) {
     closed = true;
     abort?.abort();
   }, { once: true });
-  const busy2 = (reading) => {
+  const busy2 = (reading, message = "Analyzing test planner\u2026") => {
     upload.disabled = reading;
     progress2.hidden = !reading;
+    if (reading) progress2.querySelector("p").textContent = message;
     root.querySelector("[data-import-read]").disabled = reading;
   };
   function renderRows() {
     review2.hidden = false;
-    root.querySelector("#import-rows").innerHTML = rows.map((row2, i) => `<article class="import-row" data-import-row="${esc(row2.id)}"><div class="import-row-head"><label class="checkline"><input type="checkbox" name="selected"${row2.selected ? " checked" : ""}>Include test ${i + 1}</label><button type="button" class="button quiet" data-import-remove aria-label="Remove test ${i + 1}">Remove</button></div><label>Test name<input name="title" maxlength="100" required value="${esc(row2.title)}"></label><div class="form-pair"><label>Date<input name="day" type="date" value="${esc(row2.day)}" required></label><label>Subject<select name="subject">${subjectOptions(row2.subject)}</select></label></div>${row2.warnings.length ? `<p class="import-warning">${esc(row2.warnings.join(" "))}</p>` : ""}<details><summary>Chapter coverage (optional)</summary><div class="coverage">${chapters.filter((c) => c.subject === row2.subject).map((c) => `<label class="checkline"><input name="coverage" type="checkbox" value="${c.id}"${row2.coverage.includes(c.id) ? " checked" : ""}>${esc(c.title)}</label>`).join("") || '<p class="muted">Choose a subject to set coverage.</p>'}</div></details>${row2.source ? `<details class="import-source"><summary>Original source row</summary><p>${esc(row2.source)}</p></details>` : ""}</article>`).join("") || '<p class="import-empty">No clear dates and subjects were found. Correct the text above, or add a row with the information you can verify.</p>';
+    root.querySelector("#import-rows").innerHTML = rows.map((row2, i) => `<article class="import-row" data-import-row="${esc(row2.id)}">
+      <div class="import-row-head">
+        <label class="checkline"><input type="checkbox" name="selected"${row2.selected ? " checked" : ""}><strong>Include test ${i + 1}</strong></label>
+        <button type="button" class="button quiet" data-import-remove aria-label="Remove test ${i + 1}">Remove</button>
+      </div>
+      <label>Test name<input name="title" maxlength="100" required value="${esc(row2.title)}"></label>
+      <div class="form-pair">
+        <label>Date<input name="day" type="date" value="${esc(row2.day)}" required></label>
+        <label>Subject<select name="subject">${subjectOptions(row2.subject)}</select></label>
+      </div>
+      ${row2.warnings.length ? `<p class="import-warning">${esc(row2.warnings.join(" "))}</p>` : ""}
+      <details ${row2.coverage.length ? "open" : ""}>
+        <summary>Chapter coverage (${row2.coverage.length ? `${row2.coverage.length} chapters matched` : "optional"})</summary>
+        <div class="coverage">
+          ${chapters.filter((c) => c.subject === row2.subject).map((c) => `<label class="checkline"><input name="coverage" type="checkbox" value="${c.id}"${row2.coverage.includes(c.id) ? " checked" : ""}>${esc(c.title)}</label>`).join("") || '<p class="muted">Choose a subject to set coverage.</p>'}
+        </div>
+      </details>
+      ${row2.source ? `<details class="import-source"><summary>Original source row</summary><p>${esc(row2.source)}</p></details>` : ""}
+    </article>`).join("") || '<p class="import-empty">No clear dates and subjects were found. Correct the text above, or add a row with the information you can verify.</p>';
+    const sessionsMount = root.querySelector("#import-sessions-mount");
+    if (sessionsMount) {
+      if (plannedSessions.length > 0) {
+        sessionsMount.innerHTML = `
+          <section class="import-sessions-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">TAILORED EXAM PREPARATION</p>
+                <h3>\u{1F4C5} ${plannedSessions.length} Study Sessions Generated</h3>
+              </div>
+              <span class="sessions-ready-badge">\u26A1 Auto-Scheduled</span>
+            </div>
+            <p class="muted">High-yield revision, board numericals, and formula sprints mapped directly to the days before each test.</p>
+            <div class="planned-sessions-list">
+              ${plannedSessions.map((s) => {
+          const subjObj = subjects.find((sub) => sub.id === s.subject);
+          return `<article class="planned-session-item">
+                  <div class="session-item-header">
+                    <span class="session-subj-pill badge-${s.subject}">${esc(subjObj?.title || s.subject)}</span>
+                    <span class="session-datetime">\u{1F4C5} ${esc(s.day)} \xB7 \u23F0 ${esc(s.time)} \xB7 \u23F1 ${s.minutes} min</span>
+                  </div>
+                  <strong class="session-title">${esc(s.title)}</strong>
+                  <small class="session-reason">${esc(s.reason || "")}</small>
+                </article>`;
+        }).join("")}
+            </div>
+          </section>
+        `;
+      } else {
+        sessionsMount.innerHTML = "";
+      }
+    }
+    const confirmBtn = root.querySelector("[data-import-confirm-sessions]");
+    if (confirmBtn) {
+      confirmBtn.textContent = plannedSessions.length ? `\u{1F31F} Add Tests & Schedule Study Sessions (${plannedSessions.length})` : "\u{1F31F} Add Tests & Schedule Study Sessions";
+    }
   }
   function readText() {
     error2.textContent = "";
@@ -3984,6 +4286,12 @@ function openPlannerImport(host3) {
       return;
     }
     rows = parsePlannerText(raw);
+    for (const row2 of rows) {
+      if (row2.subject && (!row2.coverage || !row2.coverage.length)) {
+        row2.coverage = matchChapterCoverage(row2.source || row2.title, row2.subject);
+      }
+    }
+    plannedSessions = generateStudySessionsForTests(rows, host3.getState());
     renderRows();
     root.querySelector("#import-rows")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
@@ -4004,16 +4312,41 @@ function openPlannerImport(host3) {
     abort?.abort();
     abort = new AbortController();
     error2.textContent = "";
-    busy2(true);
+    busy2(true, "Uploading planner for instant backend analysis\u2026");
     const currentAbort = abort;
     try {
-      const text2 = await extractDocument(file, (message) => {
-        if (!closed && abort === currentAbort) progress2.querySelector("p").textContent = message;
-      }, currentAbort.signal);
-      if (closed || abort !== currentAbort) return;
-      textInput.value = text2;
-      root.querySelector(".import-text").open = true;
-      readText();
+      let backendSuccess = false;
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/analyze-planner", {
+          method: "POST",
+          body: formData,
+          signal: currentAbort.signal
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.candidates)) {
+            raw = json.text || "";
+            textInput.value = raw;
+            rows = json.candidates;
+            plannedSessions = json.plannedSessions || [];
+            root.querySelector(".import-text").open = true;
+            renderRows();
+            backendSuccess = true;
+          }
+        }
+      } catch (backendErr) {
+      }
+      if (!backendSuccess) {
+        const text2 = await extractDocument(file, (message) => {
+          if (!closed && abort === currentAbort) progress2.querySelector("p").textContent = message;
+        }, currentAbort.signal);
+        if (closed || abort !== currentAbort) return;
+        textInput.value = text2;
+        root.querySelector(".import-text").open = true;
+        readText();
+      }
     } catch (e) {
       if (!closed && abort === currentAbort) error2.textContent = e instanceof Error ? e.message : "Could not read that file. Try another file or paste its text.";
     } finally {
@@ -4028,7 +4361,10 @@ function openPlannerImport(host3) {
     if (el.name !== "subject") return;
     syncRows();
     const row2 = rows.find((x) => x.id === rowKey(el));
-    if (row2) row2.coverage = [];
+    if (row2) {
+      row2.coverage = matchChapterCoverage(row2.source || row2.title, row2.subject);
+      plannedSessions = generateStudySessionsForTests(rows, host3.getState());
+    }
     renderRows();
   });
   root.addEventListener("click", async (e) => {
@@ -4046,6 +4382,14 @@ function openPlannerImport(host3) {
       readText();
       return;
     }
+    if (el.hasAttribute("data-import-sample")) {
+      error2.textContent = "";
+      raw = SAMPLE_CBSE_PLANNER;
+      textInput.value = raw;
+      root.querySelector(".import-text").open = true;
+      readText();
+      return;
+    }
     if (el.hasAttribute("data-import-add")) {
       syncRows();
       rows.push({ id: crypto.randomUUID(), title: "", day: "", subject: "", coverage: [], source: "", warnings: [], selected: true });
@@ -4055,45 +4399,113 @@ function openPlannerImport(host3) {
     if (el.hasAttribute("data-import-remove")) {
       syncRows();
       rows = rows.filter((x) => x.id !== rowKey(el));
+      plannedSessions = generateStudySessionsForTests(rows, host3.getState());
       renderRows();
       return;
     }
-    if (!el.hasAttribute("data-import-confirm")) return;
-    syncRows();
-    error2.textContent = "";
-    const selected2 = rows.filter((x) => x.selected);
-    if (!selected2.length) {
-      error2.textContent = "Select at least one test to add.";
-      return;
-    }
-    const invalid = selected2.find((x) => !x.title || !validPlannerDate(x.day) || !subjects.some((s) => s.id === x.subject));
-    if (invalid) {
-      error2.textContent = "Each selected test needs a name, valid date and subject. Uncheck a row you cannot confirm yet.";
-      return;
-    }
-    const next = structuredClone(host3.getState());
-    const known = new Set(next.tests.map(plannerIdentity));
-    let count = 0, duplicates = 0;
-    for (const row2 of selected2) {
-      const key = plannerIdentity(row2);
-      if (known.has(key)) {
-        duplicates++;
-        continue;
+    if (el.hasAttribute("data-import-confirm-sessions")) {
+      syncRows();
+      error2.textContent = "";
+      const selected2 = rows.filter((x) => x.selected);
+      if (!selected2.length) {
+        error2.textContent = "Select at least one test to add.";
+        return;
       }
-      const test2 = { id: crypto.randomUUID(), title: row2.title, day: row2.day, subject: row2.subject, coverage: row2.coverage.filter((id) => chapters.some((c) => c.id === id && c.subject === row2.subject)) };
-      next.tests.push(test2);
-      known.add(key);
-      count++;
-    }
-    if (!count) {
-      error2.textContent = "These tests already exist. No duplicate tests were added.";
+      const invalid = selected2.find((x) => !x.title || !validPlannerDate(x.day) || !subjects.some((s) => s.id === x.subject));
+      if (invalid) {
+        error2.textContent = "Each selected test needs a name, valid date and subject. Uncheck a row you cannot confirm yet.";
+        return;
+      }
+      const next = structuredClone(host3.getState());
+      const known = new Set(next.tests.map(plannerIdentity));
+      let count = 0, duplicates = 0;
+      for (const row2 of selected2) {
+        const key = plannerIdentity(row2);
+        if (known.has(key)) {
+          duplicates++;
+          continue;
+        }
+        const test2 = {
+          id: crypto.randomUUID(),
+          title: row2.title,
+          day: row2.day,
+          subject: row2.subject,
+          coverage: row2.coverage.filter((id) => chapters.some((c) => c.id === id && c.subject === row2.subject))
+        };
+        next.tests.push(test2);
+        known.add(key);
+        count++;
+      }
+      const existingTaskKeys = new Set(next.tasks.map((t) => `${t.day}|${t.subject}|${t.title.toLowerCase().trim()}`));
+      let sessionsAdded = 0;
+      for (const session2 of plannedSessions) {
+        const key = `${session2.day}|${session2.subject}|${session2.title.toLowerCase().trim()}`;
+        if (!existingTaskKeys.has(key)) {
+          next.tasks.push(session2);
+          existingTaskKeys.add(key);
+          sessionsAdded++;
+        }
+      }
+      if (!count && !sessionsAdded) {
+        error2.textContent = "These tests and study sessions already exist. No duplicate records were added.";
+        return;
+      }
+      el.setAttribute("disabled", "");
+      const msg = `${count} ${count === 1 ? "test" : "tests"} added & ${sessionsAdded} study sessions scheduled!`;
+      if (await host3.commit(next, msg)) {
+        if (dialog.open) await host3.closeDialog(dialog);
+        host3.navigate("planner");
+      } else {
+        el.removeAttribute("disabled");
+      }
       return;
     }
-    el.setAttribute("disabled", "");
-    if (await host3.commit(next, `${count} ${count === 1 ? "test" : "tests"} added.${duplicates ? " " + duplicates + " duplicate " + (duplicates === 1 ? "row" : "rows") + " skipped." : ""}`)) {
-      if (dialog.open) await host3.closeDialog(dialog);
-      host3.navigate("tests");
-    } else el.removeAttribute("disabled");
+    if (el.hasAttribute("data-import-confirm")) {
+      syncRows();
+      error2.textContent = "";
+      const selected2 = rows.filter((x) => x.selected);
+      if (!selected2.length) {
+        error2.textContent = "Select at least one test to add.";
+        return;
+      }
+      const invalid = selected2.find((x) => !x.title || !validPlannerDate(x.day) || !subjects.some((s) => s.id === x.subject));
+      if (invalid) {
+        error2.textContent = "Each selected test needs a name, valid date and subject. Uncheck a row you cannot confirm yet.";
+        return;
+      }
+      const next = structuredClone(host3.getState());
+      const known = new Set(next.tests.map(plannerIdentity));
+      let count = 0, duplicates = 0;
+      for (const row2 of selected2) {
+        const key = plannerIdentity(row2);
+        if (known.has(key)) {
+          duplicates++;
+          continue;
+        }
+        const test2 = {
+          id: crypto.randomUUID(),
+          title: row2.title,
+          day: row2.day,
+          subject: row2.subject,
+          coverage: row2.coverage.filter((id) => chapters.some((c) => c.id === id && c.subject === row2.subject))
+        };
+        next.tests.push(test2);
+        known.add(key);
+        count++;
+      }
+      if (!count) {
+        error2.textContent = "These tests already exist. No duplicate tests were added.";
+        return;
+      }
+      el.setAttribute("disabled", "");
+      if (await host3.commit(next, `${count} ${count === 1 ? "test" : "tests"} added.${duplicates ? " " + duplicates + " duplicate " + (duplicates === 1 ? "row" : "rows") + " skipped." : ""}`)) {
+        if (dialog.open) await host3.closeDialog(dialog);
+        host3.navigate("tests");
+      } else {
+        el.removeAttribute("disabled");
+      }
+      return;
+    }
   });
 }
 
@@ -11202,12 +11614,12 @@ function createAnimationsFromSequence(sequence, { defaultTransition = {}, ...seq
         const subjectSequence = getSubjectSequence(subject3, sequences);
         resolveValueSequence(keyframes2, transition, getValueSequence("default", subjectSequence));
       } else {
-        const subjects2 = resolveSubjects(subject3, keyframes2, scope, elementCache);
-        const numSubjects = subjects2.length;
+        const subjects3 = resolveSubjects(subject3, keyframes2, scope, elementCache);
+        const numSubjects = subjects3.length;
         for (let subjectIndex = 0; subjectIndex < numSubjects; subjectIndex++) {
           keyframes2 = keyframes2;
           transition = transition;
-          const thisSubject = subjects2[subjectIndex];
+          const thisSubject = subjects3[subjectIndex];
           const subjectSequence = getSubjectSequence(thisSubject, sequences);
           for (const key in keyframes2) {
             resolveValueSequence(keyframes2[key], getValueTransition2(transition, key), getValueSequence(key, subjectSequence), subjectIndex, numSubjects);
@@ -11301,11 +11713,11 @@ function animateSubject(subject3, keyframes2, options, scope) {
     if (subject3 == null) {
       return animations;
     }
-    const subjects2 = resolveSubjects(subject3, keyframes2, scope);
-    const numSubjects = subjects2.length;
+    const subjects3 = resolveSubjects(subject3, keyframes2, scope);
+    const numSubjects = subjects3.length;
     invariant(Boolean(numSubjects), "No valid elements provided.", "no-valid-elements");
     for (let i = 0; i < numSubjects; i++) {
-      const thisSubject = subjects2[i];
+      const thisSubject = subjects3[i];
       const transition = { ...options };
       if ("delay" in transition && typeof transition.delay === "function") {
         transition.delay = transition.delay(i, numSubjects);
@@ -17615,14 +18027,14 @@ var MockExamUI = class {
     this.bindEvents();
   }
   renderSubjectPills() {
-    const subjects2 = [
+    const subjects3 = [
       { id: "physics", label: "Physics (042)" },
       { id: "chemistry", label: "Chemistry (043)" },
       { id: "math", label: "Mathematics (041)" },
       { id: "english", label: "English Core (301)" },
       { id: "pe", label: "Physical Education (048)" }
     ];
-    return subjects2.map((s) => {
+    return subjects3.map((s) => {
       const isSelected = s.id === this.state.subjectId;
       return `
         <button class="subject-pill-btn" data-subject="${s.id}" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid ${isSelected ? "#2563eb" : "#d1d5db"}; background: ${isSelected ? "#eff6ff" : "#ffffff"}; color: ${isSelected ? "#1d4ed8" : "#374151"}; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;">
@@ -22954,14 +23366,14 @@ function timetable(list, blocks, d) {
 function plannerPage() {
   const list = tasks(date), d = dayFor(state, date), focus = focusTest(state, date), blocks = commitments(state, date, focus?.subject), ideas = personalizedSuggestions(state, date), avail = availability(state, date), metrics = dailyMetrics(state, date);
   const invalid = list.filter((t) => !t.done && t.time && conflict(state, t));
-  return `<div class="page"><div class="section-head intro"><div><p class="eyebrow">YOUR STUDY PLAN</p><h1>Planner</h1></div><div class="toolbar">${btn("apply-guided-mission", "\u26A1 1-Click Board Plan", "zap", "primary")}${btn("add-task", "Add task", "plus", "outline")}${btn("propose-plan", "Auto-schedule", "leaf", "quiet")}</div></div>
+  return `<div class="page"><div class="section-head intro"><div><p class="eyebrow">YOUR STUDY PLAN</p><h1>Planner</h1></div><div class="toolbar">${btn("apply-guided-mission", "\u26A1 1-Click Board Plan", "zap", "primary")}${btn("import-planner", "Upload Planner", "file-text", "outline")}${btn("add-task", "Add task", "plus", "outline")}${btn("propose-plan", "Auto-schedule", "leaf", "quiet")}</div></div>
   <div class="calendar-tabs" aria-label="Calendar view">${["day", "week", "month"].map((v) => btn("calendar-view", v[0].toUpperCase() + v.slice(1), "", calendarView === v ? "primary" : "outline", v)).join("")}</div>
   ${calendarView === "day" ? "" : calendarMarkup()}
   <div class="toolbar"><div class="date-tools">${tool("prev", "Previous day", "chevron-left")}<label><span class="sr">Plan date</span><input id="plan-date" type="date" value="${date}"></label>${tool("next", "Next day", "chevron-right")}</div>
   <div class="segments" aria-label="Plan view">${[["list", "Checklist", "list"], ["time", "Timetable", "calendar-range"]].map(([m, label2, i]) => `<button data-action="mode" data-value="${m}" aria-pressed="${mode === m}">${icon(i)} ${label2}</button>`).join("")}</div></div>
   <section class="planner-availability" data-tour="planner"><div><p class="eyebrow">${esc3(labelDay(date, true))}</p><h2>${duration2(metrics.recommendedMinutes)} <span>suggested study</span></h2><p>${duration2(avail.availableMinutes)} available \xB7 ${duration2(metrics.plannedMinutes)} planned \xB7 ${duration2(metrics.actualMinutes)} studied</p></div><div class="attendance-controls"><label><input type="checkbox" data-attendance="school"${checked2(avail.school)}> School today</label><label><input type="checkbox" data-attendance="tuition"${checked2(avail.tuition)}> Tuition today</label>${btn("personalisation-routine", "Edit routine", "pencil", "quiet")}</div></section>
   <p class="planning-explanation">Study blocks follow your chapter progress, tests and session rhythm, with breaks between them. Changes stay a proposal until you approve.</p>
-  ${focus ? `<section class="prep-banner"><div><p class="eyebrow">PREPARING FOR</p><h2>${esc3(focus.title)}</h2><p>${gap(date, focus.day)} days away \xB7 Your suggestions adapt to your completed work and clarity.</p></div>${btn("test-plan", "Review preparation plan", "arrow-right", "outline", focus.id)}</section>` : `<p class="muted">Add a school test or upload its planner in Tests to shape your next suggestions.</p>`}
+  ${focus ? `<section class="prep-banner"><div><p class="eyebrow">PREPARING FOR</p><h2>${esc3(focus.title)}</h2><p>${gap(date, focus.day)} days away \xB7 Your suggestions adapt to your completed work and clarity.</p></div>${btn("test-plan", "Review preparation plan", "arrow-right", "outline", focus.id)}</section>` : `<p class="muted">Add a school test or upload its planner in Tests to shape your next suggestions. ${btn("import-planner", "Upload Planner", "file-text", "outline")}</p>`}
   ${invalid.length ? `<p class="warning">${invalid.length} ${invalid.length === 1 ? "task needs" : "tasks need"} a new time. Your existing plan is unchanged.</p>` : ""}
   <div class="planner-grid"><section><div class="section-head"><h2>${mode === "time" ? "Timetable" : "Tasks"}</h2><span class="muted">${list.filter((t) => t.done).length} / ${list.length} done</span></div>
   <div class="rows">${mode === "time" ? timetable(list, blocks, d) : list.map((t) => row(t)).join("") || '<div class="empty-line">No tasks for this day.</div>'}</div></section>

@@ -341,6 +341,10 @@ input[type=checkbox],input[type=radio]{accent-color:#a74f70}
   .calendar-grid.month .calendar-cell{min-height:64px;padding:5px 3px;border-radius:10px}
   .calendar-grid.month .calendar-cell time,.calendar-grid.month .calendar-cell span,.calendar-grid.month .calendar-cell small{font-size:8px}
   .section-head{align-items:flex-start}
+  .section-head.intro{flex-direction:column;align-items:stretch;gap:14px}
+  .section-head.intro>div{width:100%}
+  .section-head.intro h1{word-break:normal;overflow-wrap:normal;white-space:nowrap}
+  .section-head.intro .toolbar{width:100%;display:flex;flex-wrap:wrap;gap:8px}
   .section-head h2{font-size:20px}
   .task-row,.test-row,.chapter-row,.idea,.settings-row,.study-record,.life-row{gap:7px;padding:10px 7px}
   .task-row .tool,.chapter-row .tool{width:38px;min-height:40px}

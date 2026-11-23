@@ -219,6 +219,135 @@
   }
 }
 
+/* ⚡ Fast Planner Sample and Automated Sessions Styling */
+.import-quick-sample {
+  margin-bottom: 6px;
+}
+.sample-planner-btn {
+  width: 100%;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--blush) 60%, white);
+  border: 1.5px dashed var(--rose);
+  color: var(--rose-dark);
+  font-weight: 750;
+  font-size: 13px;
+  min-height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sample-planner-btn:hover {
+  background: color-mix(in srgb, var(--blush) 85%, white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 108, 157, 0.15);
+}
+.sample-planner-btn:active {
+  transform: scale(0.99);
+}
+
+.import-sessions-card {
+  margin-top: 18px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.75), rgba(255, 255, 255, 0.95) 75%);
+  border: 1.5px solid color-mix(in srgb, var(--rose) 40%, var(--line));
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(217, 108, 157, 0.08);
+}
+.import-sessions-card .section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.sessions-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 750;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  border-radius: 99px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.planned-sessions-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.planned-session-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform .15s ease, border-color .15s ease;
+}
+.planned-session-item:hover {
+  border-color: var(--rose);
+  transform: translateY(-1px);
+}
+.session-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.session-subj-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+.session-subj-pill.badge-physics { background: #e0f2fe; color: #0284c7; }
+.session-subj-pill.badge-chemistry { background: #fef3c7; color: #b45309; }
+.session-subj-pill.badge-math { background: #ede9fe; color: #7c3aed; }
+.session-subj-pill.badge-pe { background: #dcfce7; color: #166534; }
+.session-subj-pill.badge-english { background: #ffe4e6; color: #be123c; }
+.session-datetime {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--soft);
+}
+.session-title {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.session-reason {
+  font-size: 11px;
+  color: var(--soft);
+  line-height: 1.35;
+}
+
+@media (max-width: 560px) {
+  .session-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .import-review .dialog-actions button {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .import-spinner {
     animation: none;
